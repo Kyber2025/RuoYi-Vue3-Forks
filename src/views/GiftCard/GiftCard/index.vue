@@ -138,14 +138,30 @@
     <el-table v-loading="loading" :data="GiftCardList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="主键" align="center" prop="id" />
+      <el-table-column label="发件人" align="center" prop="sender" />
+      <el-table-column label="主题" align="center" prop="subject" />
       <el-table-column label="类型" align="center" prop="giftType">
         <template #default="scope">
           <dict-tag :options="ka_status" :value="scope.row.giftType"/>
         </template>
       </el-table-column>
+      <el-table-column label="时间" align="center" prop="dtStr" />
+      <el-table-column label="礼品卡代码" align="center" prop="code" />
+      <el-table-column label="订单号" align="center" prop="orderNumber" />
+      <el-table-column label="金额" align="center" prop="amount" />
+      <el-table-column label="使用类型" align="center" prop="usageType">
+        <template #default="scope">
+          <dict-tag :options="ka_usage_type" :value="scope.row.usageType"/>
+        </template>
+      </el-table-column>
       <el-table-column label="状态(0正常,1禁用)" align="center" prop="status">
         <template #default="scope">
           <dict-tag :options="ka_status" :value="scope.row.status"/>
+        </template>
+      </el-table-column>
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+        <template #default="scope">
+          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
