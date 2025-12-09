@@ -27,13 +27,23 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="时间" prop="dtStr">
+<!--      <el-form-item label="时间" prop="dtStr">
         <el-input
           v-model="queryParams.dtStr"
           placeholder="请输入时间"
           clearable
           @keyup.enter="handleQuery"
         />
+      </el-form-item>-->
+      <el-form-item label="创建时间" style="width: 308px">
+        <el-date-picker
+            v-model="dateRange"
+            value-format="YYYY-MM-DD"
+            type="daterange"
+            range-separator="-"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+        ></el-date-picker>
       </el-form-item>
       <el-form-item label="礼品卡代码" prop="code">
         <el-input
@@ -171,7 +181,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -259,6 +269,7 @@ const single = ref(true)
 const multiple = ref(true)
 const total = ref(0)
 const title = ref("")
+const dateRange = ref([])
 
 const data = reactive({
   form: {},
@@ -268,7 +279,8 @@ const data = reactive({
     sender: null,
     subject: null,
     giftType: null,
-    dtStr: null,
+    //dtStr: null,
+
     code: null,
     orderNumber: null,
     amount: null,
@@ -285,7 +297,8 @@ const { queryParams, form, rules } = toRefs(data)
 /** 查询礼品卡列表 */
 function getList() {
   loading.value = true
-  listGiftCard(queryParams.value).then(response => {
+  const query = proxy.addDateRange(queryParams.value, dateRange.value)
+  listGiftCard(query).then(response => {
     GiftCardList.value = response.rows
     total.value = response.total
     loading.value = false
@@ -325,6 +338,7 @@ function handleQuery() {
 
 /** 重置按钮操作 */
 function resetQuery() {
+  dateRange.value = []
   proxy.resetForm("queryRef")
   handleQuery()
 }
@@ -332,7 +346,7 @@ function resetQuery() {
 // 多选框选中数据
 function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.id)
-  single.value = selection.length != 1
+  single.value = selection.length !== 1
   multiple.value = !selection.length
 }
 
@@ -359,13 +373,13 @@ function submitForm() {
   proxy.$refs["GiftCardRef"].validate(valid => {
     if (valid) {
       if (form.value.id != null) {
-        updateGiftCard(form.value).then(response => {
+        updateGiftCard(form.value).then(() => {
           proxy.$modal.msgSuccess("修改成功")
           open.value = false
           getList()
         })
       } else {
-        addGiftCard(form.value).then(response => {
+        addGiftCard(form.value).then(() => {
           proxy.$modal.msgSuccess("新增成功")
           open.value = false
           getList()
