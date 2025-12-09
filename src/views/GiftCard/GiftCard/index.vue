@@ -171,7 +171,8 @@
         </template>
       </el-table-column>
     </el-table>
-    
+    <!-- 左边显示总金额 -->
+    <span>{{ amountSum }}</span>
     <pagination
       v-show="total>0"
       :total="total"
@@ -258,6 +259,7 @@ const ids = ref([])
 const single = ref(true)
 const multiple = ref(true)
 const total = ref(0)
+const amountSum = ref(0)
 const title = ref("")
 
 const data = reactive({
@@ -288,6 +290,7 @@ function getList() {
   listGiftCard(queryParams.value).then(response => {
     GiftCardList.value = response.rows
     total.value = response.total
+    amountSum.value = response.msg
     loading.value = false
   })
 }
