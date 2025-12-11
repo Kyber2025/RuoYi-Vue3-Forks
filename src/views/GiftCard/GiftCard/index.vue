@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="90px" class="search-form">
       <el-form-item label="发件人" prop="sender">
         <el-input
           v-model="queryParams.sender"
@@ -17,13 +17,18 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="类型" prop="giftType">
-        <el-select v-model="queryParams.giftType" placeholder="请选择类型" clearable>
+      <el-form-item label="类型" prop="giftType" class="search-auto-item">
+        <el-select
+            v-model="queryParams.giftType"
+            placeholder="请选择类型"
+            clearable
+            class="search-auto-select"
+        >
           <el-option
-            v-for="dict in ka_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
+              v-for="dict in gift_type"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
           />
         </el-select>
       </el-form-item>
@@ -38,11 +43,12 @@
       <el-form-item label="创建时间" style="width: 308px">
         <el-date-picker
             v-model="dateRange"
-            value-format="YYYY-MM-DD"
+            value-format="yyyy-MM-dd"
             type="daterange"
             range-separator="-"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
+            @change="handleDateChange"
         ></el-date-picker>
       </el-form-item>
       <el-form-item label="礼品卡代码" prop="code">
@@ -77,23 +83,33 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="使用类型" prop="usageType">
-        <el-select v-model="queryParams.usageType" placeholder="请选择使用类型" clearable>
+      <el-form-item label="使用类型" prop="usageType" class="search-auto-item">
+        <el-select
+            v-model="queryParams.usageType"
+            placeholder="请选择使用类型"
+            clearable
+            class="search-auto-select"
+        >
           <el-option
-            v-for="dict in ka_usage_type"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
+              v-for="dict in ka_usage_type"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="状态(0正常,1禁用)" prop="status">
-        <el-select v-model="queryParams.status" placeholder="请选择状态(0正常,1禁用)" clearable>
+      <el-form-item label="状态" prop="status" class="search-auto-item">
+        <el-select
+            v-model="queryParams.status"
+            placeholder="请选择状态"
+            clearable
+            class="search-auto-select"
+        >
           <el-option
-            v-for="dict in ka_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
+              v-for="dict in ka_status"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
           />
         </el-select>
       </el-form-item>
@@ -152,7 +168,7 @@
       <el-table-column label="主题" align="center" prop="subject" />
       <el-table-column label="类型" align="center" prop="giftType">
         <template #default="scope">
-          <dict-tag :options="ka_status" :value="scope.row.giftType"/>
+          <dict-tag :options="gift_type" :value="scope.row.giftType"/>
         </template>
       </el-table-column>
       <el-table-column label="时间" align="center" prop="dtStr" />
@@ -164,7 +180,7 @@
           <dict-tag :options="ka_usage_type" :value="scope.row.usageType"/>
         </template>
       </el-table-column>
-      <el-table-column label="状态(0正常,1禁用)" align="center" prop="status">
+      <el-table-column label="状态" align="center" prop="status">
         <template #default="scope">
           <dict-tag :options="ka_status" :value="scope.row.status"/>
         </template>
@@ -203,7 +219,7 @@
         <el-form-item label="类型" prop="giftType">
           <el-select v-model="form.giftType" placeholder="请选择类型">
             <el-option
-              v-for="dict in ka_status"
+              v-for="dict in gift_type"
               :key="dict.value"
               :label="dict.label"
               :value="dict.value"
@@ -225,24 +241,35 @@
         <el-form-item label="编号" prop="extraNumber">
           <el-input v-model="form.extraNumber" placeholder="请输入编号" />
         </el-form-item>
-        <el-form-item label="使用类型" prop="usageType">
-          <el-select v-model="form.usageType" placeholder="请选择使用类型">
+        <el-form-item label="使用类型" prop="usageType" class="search-narrow-item">
+          <el-select
+              v-model="form.usageType"
+              placeholder="请选择使用类型"
+              clearable
+              class="search-narrow-select"
+          >
             <el-option
-              v-for="dict in ka_usage_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-            ></el-option>
+                v-for="dict in ka_usage_type"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            />
           </el-select>
         </el-form-item>
-        <el-form-item label="状态(0正常,1禁用)" prop="status">
-          <el-radio-group v-model="form.status">
-            <el-radio
-              v-for="dict in ka_status"
-              :key="dict.value"
-              :label="parseInt(dict.value)"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
+        <el-form-item label="状态" prop="status" class="search-narrow-item">
+          <el-select
+              v-model="form.status"
+              placeholder="请选择状态"
+              clearable
+              class="search-narrow-select"
+          >
+            <el-option
+                v-for="dict in ka_status"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            />
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -257,9 +284,14 @@
 
 <script setup name="GiftCard">
 import { listGiftCard, getGiftCard, delGiftCard, addGiftCard, updateGiftCard } from "@/api/GiftCard/GiftCard"
+import {parseTime} from "../../../utils/ruoyi.js";
 
 const { proxy } = getCurrentInstance()
-const { ka_status, ka_usage_type } = proxy.useDict('ka_status', 'ka_usage_type')
+const { ka_status, ka_usage_type, gift_type } = proxy.useDict(
+    'ka_status',
+    'ka_usage_type',
+    'gift_type'
+)
 
 const GiftCardList = ref([])
 const open = ref(false)
@@ -289,6 +321,8 @@ const data = reactive({
     extraNumber: null,
     usageType: null,
     status: null,
+    beginTime: undefined,
+    endTime: undefined
   },
   rules: {
   }
@@ -299,13 +333,22 @@ const { queryParams, form, rules } = toRefs(data)
 /** 查询礼品卡列表 */
 function getList() {
   loading.value = true
-  const query = proxy.addDateRange(queryParams.value, dateRange.value)
-  listGiftCard(query).then(response => {
+  listGiftCard(queryParams.value).then(response => {
     GiftCardList.value = response.rows
     total.value = response.total
     amountSum.value = response.msg
     loading.value = false
   })
+}
+
+function handleDateChange(val){
+  if (val && val.length === 2){
+    queryParams.value.beginTime = val[0]
+    queryParams.value.endTime = val[1]
+  }else {
+    queryParams.value.beginTime = undefined
+    queryParams.value.endTime = undefined
+  }
 }
 
 // 取消按钮
@@ -342,6 +385,8 @@ function handleQuery() {
 /** 重置按钮操作 */
 function resetQuery() {
   dateRange.value = []
+  queryParams.value.beginTime = undefined
+  queryParams.value.endTime = undefined
   proxy.resetForm("queryRef")
   handleQuery()
 }
@@ -412,3 +457,39 @@ function handleExport() {
 
 getList()
 </script>
+
+<style scoped>
+/* 搜索区域：允许自动换行 */
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+/* 搜索区域里的每个表单项之间留点间距 */
+.search-form .el-form-item {
+  margin-right: 12px;
+}
+
+/* 三个下拉：类型 / 使用类型 / 状态，自适应宽度 */
+.search-auto-item {
+  flex: 1 1 180px;
+  min-width: 150px;
+  max-width: 200px;
+}
+
+/* 下拉框占满自己那一格 */
+.search-auto-select {
+  width: 100%;
+}
+
+.search-form .el-form-item__label {
+  white-space: nowrap;
+}
+
+.search-form :deep(.el-form-item__label) {
+  white-space: nowrap;
+  flex: 0 0 90px;
+}
+</style>
+
