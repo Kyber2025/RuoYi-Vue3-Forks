@@ -43,13 +43,13 @@
       <el-form-item label="创建时间" style="width: 308px">
         <el-date-picker
             v-model="dateRange"
-            value-format="yyyy-MM-dd"
             type="daterange"
-            range-separator="-"
+            value-format="YYYY-MM-DD"
+            format="YYYY-MM-DD"
+            range-separator="至"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
-            @change="handleDateChange"
-        ></el-date-picker>
+        />
       </el-form-item>
       <el-form-item label="礼品卡代码" prop="code">
         <el-input
@@ -333,22 +333,20 @@ const { queryParams, form, rules } = toRefs(data)
 /** 查询礼品卡列表 */
 function getList() {
   loading.value = true
-  listGiftCard(queryParams.value).then(response => {
+
+  const query = {
+    ...queryParams.value,
+    beginTime: dateRange.value?.[0] || undefined,
+    endTime: dateRange.value?.[1] || undefined
+  }
+
+  listGiftCard(query).then(response => {
     GiftCardList.value = response.rows
     total.value = response.total
     amountSum.value = response.msg
+  }).finally(() => {
     loading.value = false
   })
-}
-
-function handleDateChange(val){
-  if (val && val.length === 2){
-    queryParams.value.beginTime = val[0]
-    queryParams.value.endTime = val[1]
-  }else {
-    queryParams.value.beginTime = undefined
-    queryParams.value.endTime = undefined
-  }
 }
 
 // 取消按钮
@@ -385,8 +383,6 @@ function handleQuery() {
 /** 重置按钮操作 */
 function resetQuery() {
   dateRange.value = []
-  queryParams.value.beginTime = undefined
-  queryParams.value.endTime = undefined
   proxy.resetForm("queryRef")
   handleQuery()
 }
