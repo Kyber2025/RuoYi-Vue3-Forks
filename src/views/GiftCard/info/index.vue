@@ -173,7 +173,7 @@
     </div>
 
     <!-- 添加或修改设备信息对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="设备号码" prop="deviceNumber">
           <el-input v-model="form.deviceNumber" placeholder="请输入设备号码"/>
@@ -194,10 +194,12 @@
           <el-switch v-model="form.deviceEnabled" :active-value="1" :inactive-value="0"/>
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -325,9 +327,9 @@ export default {
         deviceNumber: null,
         currentAmount: null,
         rechargeLimit: null,
-        rechargeEnabled: null,
-        shoppingEnabled: null,
-        deviceEnabled: null,
+        rechargeEnabled: 0,
+        shoppingEnabled: 0,
+        deviceEnabled: 0,
         createTime: null,
         updateTime: null
       }
@@ -358,13 +360,34 @@ export default {
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset()
-      const id = row.id || this.ids
-      getInfo(id).then(response => {
-        this.form = response.data
+
+      const rawId = row?.id ?? (Array.isArray(this.ids) ? this.ids[0] : this.ids)
+      const id = Number(rawId)
+
+      if (!rawId) {
+        this.$modal.msgWarning("请选择一条数据再修改")
+        return
+      }
+      if (Number.isNaN(id)) {
+        this.$modal.msgError("ID 非法：" + rawId)
+        return
+      }
+
+      getInfo(id).then(res => {
+        const d = res.data || {}
+        this.form = {
+          ...d,
+          rechargeEnabled: d.rechargeEnabled == null ? 0 : Number(d.rechargeEnabled),
+          shoppingEnabled: d.shoppingEnabled == null ? 0 : Number(d.shoppingEnabled),
+          deviceEnabled: d.deviceEnabled == null ? 0 : Number(d.deviceEnabled),
+        }
         this.open = true
         this.title = "修改设备信息"
+      }).catch(err => {
+        this.$modal.msgError("获取详情失败：" + (err.msg || err.message || "未知错误"))
       })
     },
+
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {

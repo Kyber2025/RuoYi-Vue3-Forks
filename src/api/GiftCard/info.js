@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询设备信息列表
 export function listInfo(query) {
   return request({
-    url: '/system/info/list',
+    url: '/gift-cards/info/list',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listInfo(query) {
 // 查询设备信息详细
 export function getInfo(id) {
   return request({
-    url: '/system/info/' + id,
+    url: '/gift-cards/info/' + id,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getInfo(id) {
 // 新增设备信息
 export function addInfo(data) {
   return request({
-    url: '/system/info',
+    url: '/gift-cards/info',
     method: 'post',
     data: data
   })
@@ -29,7 +29,7 @@ export function addInfo(data) {
 // 修改设备信息
 export function updateInfo(data) {
   return request({
-    url: '/system/info',
+    url: '/gift-cards/info',
     method: 'put',
     data: data
   })
@@ -38,7 +38,7 @@ export function updateInfo(data) {
 // 删除设备信息
 export function delInfo(id) {
   return request({
-    url: '/system/info/' + id,
+    url: '/gift-cards/info/' + id,
     method: 'delete'
   })
 }
