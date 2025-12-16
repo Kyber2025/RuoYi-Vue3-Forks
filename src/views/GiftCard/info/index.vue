@@ -37,23 +37,23 @@
                   @keyup.enter.native="handleQuery"/>
       </el-form-item>
 
-      <el-form-item label="充值上限" prop="dailyRechargeLimit">
-        <el-input v-model="queryParams.dailyRechargeLimit" placeholder="请输入当天充值上限" clearable
+      <el-form-item label="当日充值上限金额" prop="dailyRechargeLimit">
+        <el-input v-model="queryParams.dailyRechargeLimit" placeholder="请输入当日充值上限金额" clearable
                   @keyup.enter.native="handleQuery"/>
       </el-form-item>
 
-      <el-form-item label="充值实际" prop="dailyRechargeAmount">
-        <el-input v-model="queryParams.dailyRechargeAmount" placeholder="请输入当天充值实际金额" clearable
+      <el-form-item label="当日实际充值金额" prop="dailyRechargeAmount">
+        <el-input v-model="queryParams.dailyRechargeAmount" placeholder="请输入当天实际充值金额" clearable
                   @keyup.enter.native="handleQuery"/>
       </el-form-item>
 
-      <el-form-item label="买书上限" prop="dailyShoppingLimit">
-        <el-input v-model="queryParams.dailyShoppingLimit" placeholder="请输入当天买书上限" clearable
+      <el-form-item label="当日买书上限金额" prop="dailyShoppingLimit">
+        <el-input v-model="queryParams.dailyShoppingLimit" placeholder="请输入当日买书上限金额" clearable
                   @keyup.enter.native="handleQuery"/>
       </el-form-item>
 
-      <el-form-item label="买书实际" prop="dailyShoppingAmount">
-        <el-input v-model="queryParams.dailyShoppingAmount" placeholder="请输入当天买书实际金额" clearable
+      <el-form-item label="当日买书实际余额" prop="dailyShoppingAmount">
+        <el-input v-model="queryParams.dailyShoppingAmount" placeholder="请输入当日买书实际余额" clearable
                   @keyup.enter.native="handleQuery"/>
       </el-form-item>
       <el-form-item label="充值开关" prop="rechargeEnabled" style="width: 170px">
@@ -131,10 +131,10 @@
       <el-table-column label="钱包余额" align="center" prop="currentAmount"/>
       <el-table-column label="钱包上限" align="center" prop="rechargeLimit"/>
       <el-table-column label="买书单价" align="center" prop="dailyBookUnitPrice"/>
-      <el-table-column label="充值上限" align="center" prop="dailyRechargeLimit"/>
-      <el-table-column label="充值实际" align="center" prop="dailyRechargeAmount"/>
-      <el-table-column label="买书上限" align="center" prop="dailyShoppingLimit"/>
-      <el-table-column label="买书实际" align="center" prop="dailyShoppingAmount"/>
+      <el-table-column label="当日充值上限金额" align="center" prop="dailyRechargeLimit"/>
+      <el-table-column label="当日实际充值金额" align="center" prop="dailyRechargeAmount"/>
+      <el-table-column label="当日买书上限金额" align="center" prop="dailyShoppingLimit"/>
+      <el-table-column label="当日买书实际余额" align="center" prop="dailyShoppingAmount"/>
       <el-table-column label="充值开关" align="center">
         <template #default="{ row }">
           <el-switch
@@ -205,13 +205,10 @@
     </div>
 
     <!-- 添加或修改设备信息对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+    <el-dialog :title="title" v-model="open" width="600px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-position="top">
         <el-form-item label="设备号码" prop="deviceNumber">
           <el-input v-model="form.deviceNumber" placeholder="请输入设备号码"/>
-        </el-form-item>
-        <el-form-item label="钱包余额" prop="currentAmount">
-          <el-input v-model="form.currentAmount" placeholder="请输入当前钱包余额"/>
         </el-form-item>
         <el-form-item label="钱包上限" prop="rechargeLimit">
           <el-input v-model="form.rechargeLimit" placeholder="请输入充值金额上限"/>
@@ -219,25 +216,19 @@
         <el-form-item label="买书单价" prop="dailyBookUnitPrice">
           <el-input v-model="form.dailyBookUnitPrice" placeholder="请输入当天买书单价"/>
         </el-form-item>
-        <el-form-item label="充值上限" prop="dailyRechargeLimit">
-          <el-input v-model="form.dailyRechargeLimit" placeholder="请输入当天充值上限"/>
+        <el-form-item label="当日充值上限金额" prop="dailyRechargeLimit">
+          <el-input v-model="form.dailyRechargeLimit" placeholder="请输入当日充值上限金额"/>
         </el-form-item>
-        <el-form-item label="充值实际" prop="dailyRechargeAmount">
-          <el-input v-model="form.dailyRechargeAmount" placeholder="请输入当天充值实际金额"/>
+        <el-form-item label="当日买书上限金额" prop="dailyShoppingLimit">
+          <el-input v-model="form.dailyShoppingLimit" placeholder="请输入当日买书上限金额"/>
         </el-form-item>
-        <el-form-item label="买书上限" prop="dailyShoppingLimit">
-          <el-input v-model="form.dailyShoppingLimit" placeholder="请输入当天买书上限"/>
-        </el-form-item>
-        <el-form-item label="买书实际" prop="dailyShoppingAmount">
-          <el-input v-model="form.dailyShoppingAmount" placeholder="请输入当天买书实际金额"/>
-        </el-form-item>
-        <el-form-item label="充值开关" prop="rechargeEnabled">
+        <el-form-item label="充值开关" prop="rechargeEnabled" class="inline-item">
           <el-switch v-model="form.rechargeEnabled" :active-value="1" :inactive-value="0"/>
         </el-form-item>
-        <el-form-item label="购物开关" prop="shoppingEnabled">
+        <el-form-item label="购物开关" prop="shoppingEnabled" class="inline-item">
           <el-switch v-model="form.shoppingEnabled" :active-value="1" :inactive-value="0"/>
         </el-form-item>
-        <el-form-item label="设备开关" prop="deviceEnabled">
+        <el-form-item label="设备开关" prop="deviceEnabled" class="inline-item">
           <el-switch v-model="form.deviceEnabled" :active-value="1" :inactive-value="0"/>
         </el-form-item>
       </el-form>
@@ -333,16 +324,15 @@ export default {
         ],
         dailyRechargeLimit: [
             {required: true, message: "当天充值上限不能为空", trigger: "blur"},
-            {validator: validateBookPrice, trigger: ["blur", "change"]}
         ],
         dailyRechargeAmount: [
-            {required: true, message: "当天充值实际金额不能为空", trigger: "blur"},
+            {required: true, message: "当日实际充值金额不能为空", trigger: "blur"},
         ],
         dailyShoppingLimit: [
-            {required: true, message: "当天买书上限不能为空", trigger: "blur"}
+            {required: true, message: "当日买书上限金额不能为空", trigger: "blur"}
         ],
         dailyShoppingAmount: [
-            {required: true, message: "当天买书实际金额不能为空", trigger: "blur"}
+            {required: true, message: "当日买书实际余额不能为空", trigger: "blur"}
         ],
         rechargeEnabled: [
           {required: true, message: "充值开关不能为空", trigger: "blur"}
@@ -527,10 +517,21 @@ export default {
 }
 </script>
 <style scoped>
-/* 搜索区整体间距 */
+/* 搜索区：用 Grid 排版，别动 el-form 的 display */
+.search-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); /* 每个筛选项最小宽度 */
+  column-gap: 28px;  /* 列间距 */
+  row-gap: 16px;     /* 行间距 */
+  padding-bottom: 14px; /* 和按钮区拉开 */
+  align-items: start;
+}
+
+
+/* 每个表单项：顶部对齐，避免长label换行后被遮挡 */
 .search-form :deep(.el-form-item) {
-  margin-right: 16px;
-  margin-bottom: 12px;
+  margin: 0 !important;
+  align-items: flex-start;
 }
 
 /* 统一搜索区输入框/下拉框高度 */
@@ -572,5 +573,27 @@ export default {
 .page-footer {
   margin-top: auto;
   padding-top: 12px;
+}
+
+/* label允许换行，行高调小一点更好看 */
+.search-form :deep(.el-form-item__label) {
+  white-space: normal;
+  line-height: 18px;
+}
+
+/* 按钮行跟搜索区拉开点距离 */
+.mb8 {
+  margin-top: 10px;
+}
+
+/* 关键：让每个搜索项别太窄，整体更松 */
+.search-form :deep(.el-form-item__content) {
+  min-width: 0;
+}
+
+/* 仅开关项：恢复成 label 在左、控件在右的一行布局 */
+:deep(.inline-item) {
+  display: flex;
+  align-items: center;
 }
 </style>
