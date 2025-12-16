@@ -446,9 +446,12 @@ function handleDelete(row) {
 
 /** 导出按钮操作 */
 function handleExport() {
-  proxy.download('GiftCard/GiftCard/export', {
-    ...queryParams.value
-  }, `GiftCard_${new Date().getTime()}.xlsx`)
+  const query = {
+    ...queryParams.value,
+    beginTime: dateRange.value?.[0] || undefined,
+    endTime: dateRange.value?.[1] || undefined
+  }
+  proxy.download('GiftCard/GiftCard/export', query, `GiftCard_${new Date().getTime()}.xlsx`)
 }
 
 getList()

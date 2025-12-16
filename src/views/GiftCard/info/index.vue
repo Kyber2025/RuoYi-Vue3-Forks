@@ -16,21 +16,45 @@
             @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="设备金额" prop="currentAmount">
+      <el-form-item label="钱包余额" prop="currentAmount">
         <el-input
             v-model="queryParams.currentAmount"
-            placeholder="请输入当前设备金额"
+            placeholder="请输入当前钱包余额"
             clearable
             @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="充值上线" prop="rechargeLimit">
+      <el-form-item label="钱包上限" prop="rechargeLimit">
         <el-input
             v-model="queryParams.rechargeLimit"
             placeholder="请输入充值金额上限"
             clearable
             @keyup.enter.native="handleQuery"
         />
+      </el-form-item>
+      <el-form-item label="买书单价" prop="dailyBookUnitPrice">
+        <el-input v-model="queryParams.dailyBookUnitPrice" placeholder="请输入当天买书单价" clearable
+                  @keyup.enter.native="handleQuery"/>
+      </el-form-item>
+
+      <el-form-item label="充值上限" prop="dailyRechargeLimit">
+        <el-input v-model="queryParams.dailyRechargeLimit" placeholder="请输入当天充值上限" clearable
+                  @keyup.enter.native="handleQuery"/>
+      </el-form-item>
+
+      <el-form-item label="充值实际" prop="dailyRechargeAmount">
+        <el-input v-model="queryParams.dailyRechargeAmount" placeholder="请输入当天充值实际金额" clearable
+                  @keyup.enter.native="handleQuery"/>
+      </el-form-item>
+
+      <el-form-item label="买书上限" prop="dailyShoppingLimit">
+        <el-input v-model="queryParams.dailyShoppingLimit" placeholder="请输入当天买书上限" clearable
+                  @keyup.enter.native="handleQuery"/>
+      </el-form-item>
+
+      <el-form-item label="买书实际" prop="dailyShoppingAmount">
+        <el-input v-model="queryParams.dailyShoppingAmount" placeholder="请输入当天买书实际金额" clearable
+                  @keyup.enter.native="handleQuery"/>
       </el-form-item>
       <el-form-item label="充值开关" prop="rechargeEnabled" style="width: 170px">
         <el-select v-model="queryParams.rechargeEnabled" placeholder="全部" clearable style="width: 100%">
@@ -73,7 +97,8 @@
             :disabled="single"
             @click="handleUpdate"
             v-hasPermi="['device:info:edit']"
-        >修改</el-button>
+        >修改
+        </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -83,7 +108,8 @@
             :disabled="multiple"
             @click="handleDelete"
             v-hasPermi="['device:info:remove']"
-        >删除</el-button>
+        >删除
+        </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -92,17 +118,23 @@
             size="default"
             @click="handleExport"
             v-hasPermi="['device:info:export']"
-        >导出</el-button>
+        >导出
+        </el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="infoList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center"/>
-      <el-table-column label="主键ID" align="center" prop="id"/>
+<!--      <el-table-column label="编号" align="center" prop="id"/>-->
       <el-table-column label="设备号码" align="center" prop="deviceNumber"/>
-      <el-table-column label="设备金额" align="center" prop="currentAmount"/>
-      <el-table-column label="充值上线" align="center" prop="rechargeLimit"/>
+      <el-table-column label="钱包余额" align="center" prop="currentAmount"/>
+      <el-table-column label="钱包上限" align="center" prop="rechargeLimit"/>
+      <el-table-column label="买书单价" align="center" prop="dailyBookUnitPrice"/>
+      <el-table-column label="充值上限" align="center" prop="dailyRechargeLimit"/>
+      <el-table-column label="充值实际" align="center" prop="dailyRechargeAmount"/>
+      <el-table-column label="买书上限" align="center" prop="dailyShoppingLimit"/>
+      <el-table-column label="买书实际" align="center" prop="dailyShoppingAmount"/>
       <el-table-column label="充值开关" align="center">
         <template #default="{ row }">
           <el-switch
@@ -178,11 +210,26 @@
         <el-form-item label="设备号码" prop="deviceNumber">
           <el-input v-model="form.deviceNumber" placeholder="请输入设备号码"/>
         </el-form-item>
-        <el-form-item label="设备金额" prop="currentAmount">
-          <el-input v-model="form.currentAmount" placeholder="请输入当前设备金额"/>
+        <el-form-item label="钱包余额" prop="currentAmount">
+          <el-input v-model="form.currentAmount" placeholder="请输入当前钱包余额"/>
         </el-form-item>
-        <el-form-item label="充值上线" prop="rechargeLimit">
+        <el-form-item label="钱包上限" prop="rechargeLimit">
           <el-input v-model="form.rechargeLimit" placeholder="请输入充值金额上限"/>
+        </el-form-item>
+        <el-form-item label="买书单价" prop="dailyBookUnitPrice">
+          <el-input v-model="form.dailyBookUnitPrice" placeholder="请输入当天买书单价"/>
+        </el-form-item>
+        <el-form-item label="充值上限" prop="dailyRechargeLimit">
+          <el-input v-model="form.dailyRechargeLimit" placeholder="请输入当天充值上限"/>
+        </el-form-item>
+        <el-form-item label="充值实际" prop="dailyRechargeAmount">
+          <el-input v-model="form.dailyRechargeAmount" placeholder="请输入当天充值实际金额"/>
+        </el-form-item>
+        <el-form-item label="买书上限" prop="dailyShoppingLimit">
+          <el-input v-model="form.dailyShoppingLimit" placeholder="请输入当天买书上限"/>
+        </el-form-item>
+        <el-form-item label="买书实际" prop="dailyShoppingAmount">
+          <el-input v-model="form.dailyShoppingAmount" placeholder="请输入当天买书实际金额"/>
         </el-form-item>
         <el-form-item label="充值开关" prop="rechargeEnabled">
           <el-switch v-model="form.rechargeEnabled" :active-value="1" :inactive-value="0"/>
@@ -211,6 +258,24 @@ import {Search, Refresh, Plus, Edit, Delete, Download} from '@element-plus/icons
 export default {
   name: "Info",
   data() {
+    const validateBookPrice = (rule, value, callback) => {
+      const price = Number(value)
+      const limit = Number(this.form.dailyRechargeLimit)
+
+      if (value == null || value === '' || this.form.dailyRechargeLimit == null || this.form.dailyRechargeLimit === '') {
+        return callback()
+      }
+
+      if (Number.isNaN(price) || Number.isNaN(limit)) {
+        return callback(new Error("请输入合法的数字"))
+      }
+
+      if (price > limit - 1000) {
+        return callback(new Error("买书单价必须 ≤ 当天充值上限 - 1000"))
+      }
+
+      callback()
+    }
     return {
       Search, Refresh, Plus, Edit, Delete, Download,
       // 遮罩层
@@ -238,6 +303,13 @@ export default {
         deviceNumber: null,
         currentAmount: null,
         rechargeLimit: null,
+
+        dailyBookUnitPrice: null,
+        dailyRechargeLimit: null,
+        dailyRechargeAmount: null,
+        dailyShoppingLimit: null,
+        dailyShoppingAmount: null,
+
         rechargeEnabled: null,
         shoppingEnabled: null,
         deviceEnabled: null,
@@ -250,10 +322,27 @@ export default {
           {required: true, message: "设备号码不能为空", trigger: "blur"}
         ],
         currentAmount: [
-          {required: true, message: "当前设备金额不能为空", trigger: "blur"}
+          {required: true, message: "当前钱包余额不能为空", trigger: "blur"}
         ],
         rechargeLimit: [
           {required: true, message: "充值金额上限不能为空", trigger: "blur"}
+        ],
+        dailyBookUnitPrice: [
+            {required: true, message: "买书单价不能为空", trigger: "blur"},
+            {validator: validateBookPrice, trigger: ["blur", "change"]}
+        ],
+        dailyRechargeLimit: [
+            {required: true, message: "当天充值上限不能为空", trigger: "blur"},
+            {validator: validateBookPrice, trigger: ["blur", "change"]}
+        ],
+        dailyRechargeAmount: [
+            {required: true, message: "当天充值实际金额不能为空", trigger: "blur"},
+        ],
+        dailyShoppingLimit: [
+            {required: true, message: "当天买书上限不能为空", trigger: "blur"}
+        ],
+        dailyShoppingAmount: [
+            {required: true, message: "当天买书实际金额不能为空", trigger: "blur"}
         ],
         rechargeEnabled: [
           {required: true, message: "充值开关不能为空", trigger: "blur"}
@@ -277,6 +366,7 @@ export default {
     this.getList()
   },
   methods: {
+
     /**
      * 谢欢开关
      * @param row
@@ -327,6 +417,13 @@ export default {
         deviceNumber: null,
         currentAmount: null,
         rechargeLimit: null,
+
+        dailyBookUnitPrice: null,
+        dailyRechargeLimit: null,
+        dailyRechargeAmount: null,
+        dailyShoppingLimit: null,
+        dailyShoppingAmount: null,
+
         rechargeEnabled: 0,
         shoppingEnabled: 0,
         deviceEnabled: 0,
@@ -421,10 +518,11 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/info/export', {
+      this.download('/gift-cards/info/export', {
         ...this.queryParams
       }, `info_${new Date().getTime()}.xlsx`)
     }
+
   }
 }
 </script>
