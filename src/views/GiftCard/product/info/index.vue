@@ -319,7 +319,7 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/info/export', {
+      this.download('/gift-cards/products/info/export', {
         ...this.queryParams
       }, `info_${new Date().getTime()}.xlsx`)
     }
