@@ -6,7 +6,7 @@
           v-model="queryParams.productName"
           placeholder="请输入商品名称"
           clearable
-          @keyup.enter.native="handleQuery"
+          @keyup.enter="handleQuery"
         />
       </el-form-item>
       <el-form-item label="商品金额" prop="amount">
@@ -14,7 +14,7 @@
           v-model="queryParams.amount"
           placeholder="请输入商品金额"
           clearable
-          @keyup.enter.native="handleQuery"
+          @keyup.enter="handleQuery"
         />
       </el-form-item>
       <el-form-item label="创建时间" prop="createdAt">
@@ -92,17 +92,17 @@
       <el-table-column label="商品购买地址" align="center" prop="productUrl" />
       <el-table-column label="商品金额" align="center" prop="amount" />
       <el-table-column label="创建时间" align="center" prop="createdAt" width="180">
-        <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.createdAt, '{y}-{m}-{d}') }}</span>
+        <template #default="{ row }">
+          <span>{{ parseTime(row.createdAt, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="更新时间" align="center" prop="updatedAt" width="180">
-        <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.updatedAt, '{y}-{m}-{d}') }}</span>
+        <template #default="{ row }">
+          <span>{{ parseTime(row.createdAt, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template slot-scope="scope">
+        <template #default="{ row }">
           <el-button
             size="mini"
             type="text"
@@ -168,6 +168,7 @@
 
 <script>
 import { listInfo, getInfo, delInfo, addInfo, updateInfo } from "@/api/GiftCard/productInfo"
+import {parseTime} from "../../../../utils/ruoyi.js";
 
 export default {
   name: "Info",
@@ -227,6 +228,7 @@ export default {
     this.getList()
   },
   methods: {
+    parseTime,
     /** 查询礼品卡可购买商品信息列表 */
     getList() {
       this.loading = true
