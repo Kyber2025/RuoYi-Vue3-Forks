@@ -1,6 +1,7 @@
 <template>
   <div class="app-container">
     <el-form
+        class="search-form"
         :model="queryParams"
         ref="queryForm"
         size="small"
@@ -26,7 +27,7 @@
         />
       </el-form-item>
 
-      <el-form-item label="收件人地址" prop="addressLine">
+      <el-form-item label="收件人地址" prop="addressLine" class="addr-item">
         <el-input
             v-model="queryParams.addressLine"
             placeholder="请输入收件人地址"
@@ -41,10 +42,6 @@
 
       <el-form-item label="州/省" prop="state">
         <el-input v-model="queryParams.state" placeholder="请输入州/省" clearable @keyup.enter="handleQuery" />
-      </el-form-item>
-
-      <el-form-item label="邮编" prop="postCode">
-        <el-input v-model="queryParams.postCode" placeholder="请输入邮编" clearable @keyup.enter="handleQuery" />
       </el-form-item>
 
       <el-form-item label="联系电话" prop="phone">
@@ -76,29 +73,30 @@
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary" size="small" @click="handleQuery">搜索</el-button>
-        <el-button size="small" @click="resetQuery">重置</el-button>
+        <el-button type="primary" :icon="Search" size="small" @click="handleQuery">搜索</el-button>
+        <el-button :icon="Refresh" size="small" @click="resetQuery">重置</el-button>
+
       </el-form-item>
     </el-form>
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain size="small" @click="handleAdd" v-hasPermi="['system:info:add']">
+        <el-button type="primary" plain :icon="Plus" size="small" @click="handleAdd" v-hasPermi="['customer:info:add']">
           新增
         </el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button type="success" plain size="small" :disabled="single" @click="handleUpdate" v-hasPermi="['system:info:edit']">
+        <el-button type="success" plain :icon="Edit" size="small" :disabled="single" @click="handleUpdate" v-hasPermi="['customer:info:edit']">
           修改
         </el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button type="danger" plain size="small" :disabled="multiple" @click="handleDelete" v-hasPermi="['system:info:remove']">
+        <el-button type="danger" plain :icon="Delete" size="small" :disabled="multiple" @click="handleDelete" v-hasPermi="['customer:info:remove']">
           删除
         </el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button type="warning" plain size="small" @click="handleExport" v-hasPermi="['system:info:export']">
+        <el-button type="warning" plain :icon="Download" size="small" @click="handleExport" v-hasPermi="['customer:info:export']">
           导出
         </el-button>
       </el-col>
@@ -118,22 +116,10 @@
       <el-table-column label="联系电话" align="center" prop="phone" />
       <el-table-column label="邮箱" align="center" prop="email" />
 
-      <el-table-column label="创建时间" align="center" prop="createdAt" width="180">
-        <template #default="{ row }">
-          <span>{{ parseTime(row.createdAt, '{y}-{m}-{d}') }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="更新时间" align="center" prop="updatedAt" width="180">
-        <template #default="{ row }">
-          <span>{{ parseTime(row.updatedAt, '{y}-{m}-{d}') }}</span>
-        </template>
-      </el-table-column>
-
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="{ row }">
-          <el-button link type="primary" size="small" @click="handleUpdate(row)" v-hasPermi="['system:info:edit']">修改</el-button>
-          <el-button link type="danger" size="small" @click="handleDelete(row)" v-hasPermi="['system:info:remove']">删除</el-button>
+          <el-button link type="primary" size="small" @click="handleUpdate(row)" v-hasPermi="['customer:info:edit']">修改</el-button>
+          <el-button link type="danger" size="small" @click="handleDelete(row)" v-hasPermi="['customer:info:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -154,7 +140,7 @@
         <el-form-item label="收件人姓" prop="lastName">
           <el-input v-model="form.lastName" placeholder="请输入收件人姓" />
         </el-form-item>
-        <el-form-item label="收件人地址" prop="addressLine">
+        <el-form-item label="收件人地址" prop="addressLine" class="addr-item">
           <el-input v-model="form.addressLine" placeholder="请输入收件人地址" />
         </el-form-item>
         <el-form-item label="城市" prop="city">
@@ -164,7 +150,7 @@
           <el-input v-model="form.state" placeholder="请输入州/省" />
         </el-form-item>
         <el-form-item label="邮编" prop="postCode">
-          <el-input v-model="form.postCode" placeholder="请输入邮编" />
+          <el-input v-model="form.postCode" placeholder="选择州后自动填充" />
         </el-form-item>
         <el-form-item label="联系电话" prop="phone">
           <el-input v-model="form.phone" placeholder="请输入联系电话" />
@@ -185,13 +171,22 @@
 </template>
 
 <script setup>
-import { ref, reactive, toRefs, getCurrentInstance } from "vue"
+import { ref, reactive, toRefs, getCurrentInstance, watch } from "vue"
 import { listInfo, getInfo, delInfo, addInfo, updateInfo } from "@/api/GiftCard/customerInfo"
+import { Search, Refresh, Plus, Edit, Delete, Download } from '@element-plus/icons-vue'
 
 const { proxy } = getCurrentInstance()
 
 const queryForm = ref()
 const formRef = ref()
+
+/*const stateOptions = [
+  { label: "Assam", value: "Assam", postCode: "781123" },
+  { label: "Ladakh", value: "Ladakh", postCode: "194201" },
+  { label: "Kerala", value: "Kerala", postCode: "673888" },
+  { label: "Goa", value: "Goa", postCode: "403002" },
+  { label: "Sikkim", value: "Sikkim", postCode: "737101" }
+]*/
 
 const state = reactive({
   loading: true,
@@ -218,18 +213,62 @@ const state = reactive({
     updatedAt: null
   },
   form: {},
-  rules: {
-    firstName: [{ required: true, message: "收件人名不能为空", trigger: "blur" }]
-  }
+  rules: {}
 })
 
 const { loading, ids, single, multiple, showSearch, total, infoList, title, open, queryParams, form, rules } = toRefs(state)
+
+/*const validateStatePostCode = (rule, value, callback) => {
+  const st = form.value.state
+  const pc = form.value.postCode
+  const found = stateOptions.find(i => i.value === st)
+  if (!found) return callback(new Error("请选择州/省"))
+  if (pc !== found.postCode) return callback(new Error(`邮编必须为 ${found.postCode}`))
+  callback()
+}*/
+
+state.rules = {
+  firstName: [{ required: true, message: "收件人名不能为空", trigger: "blur" }],
+  lastName: [{ required: true, message: "收件人姓不能为空", trigger: "blur" }],
+  addressLine: [{ required: true, message: "收件人地址不能为空", trigger: "blur" }],
+  city: [{ required: true, message: "城市不能为空", trigger: "blur" }],
+  state: [{ required: true, message: "州/省不能为空", trigger: "change" }],
+  postCode: [
+    { required: true, message: "邮编不能为空", trigger: "blur" },
+    /*{ validator: validateStatePostCode, trigger: ["blur", "change"] }*/
+  ],
+  phone: [{ required: true, message: "联系电话不能为空", trigger: "blur" }],
+  email: [
+    { required: true, message: "邮箱不能为空", trigger: "blur" },
+    { type: "email", message: "邮箱格式不正确", trigger: ["blur", "change"] }
+  ]
+}
+
+/*const syncPostCode = (target) => {
+  const found = stateOptions.find(i => i.value === target.state)
+  target.postCode = found ? found.postCode : null
+}*/
+
+/*watch(
+    () => queryParams.value.state,
+    (val) => {
+      const found = stateOptions.find(i => i.value === val)
+      queryParams.value.postCode = found ? found.postCode : null
+    }
+)
+
+watch(
+    () => form.value.state,
+    () => syncPostCode(form.value),
+    { immediate: true }
+)*/
 
 function getList() {
   loading.value = true
   listInfo(queryParams.value).then(res => {
     infoList.value = res.rows
     total.value = res.total
+  }).finally(() => {
     loading.value = false
   })
 }
@@ -246,7 +285,7 @@ function reset() {
     phone: null,
     email: null
   }
-  proxy?.resetForm("formRef") // 如果你项目里有 resetForm 方法
+  formRef.value?.resetFields() // 如果你项目里有 resetForm 方法
 }
 
 function handleQuery() {
@@ -255,7 +294,7 @@ function handleQuery() {
 }
 
 function resetQuery() {
-  proxy?.resetForm("queryForm")
+  queryForm.value?.resetFields()
   handleQuery()
 }
 
@@ -273,7 +312,8 @@ function handleAdd() {
 
 function handleUpdate(row) {
   reset()
-  const id = row?.id || ids.value
+  const id = row?.id ?? (Array.isArray(ids.value) ? ids.value[0] : ids.value)
+  if (!id) return
   getInfo(id).then(res => {
     form.value = res.data
     open.value = true
@@ -300,6 +340,7 @@ function cancel() {
 
 function handleDelete(row) {
   const delIds = row?.id || ids.value
+  if (!delIds || (Array.isArray(delIds) && delIds.length === 0)) return
   proxy?.$modal
       ?.confirm(`是否确认删除编号为"${delIds}"的数据项？`)
       .then(() => delInfo(delIds))
@@ -320,3 +361,40 @@ function handleExport() {
 
 getList()
 </script>
+
+<style scoped>
+/* 搜索区改成 grid，彻底解决挤来挤去的问题 */
+.search-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr)); /* 一行4列 */
+  column-gap: 18px;
+  row-gap: 10px;
+  align-items: start;
+}
+
+/* 覆盖 inline form-item 默认的 margin（不然 grid 不好看） */
+.search-form :deep(.el-form-item) {
+  margin-right: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* label 不换行，避免“收件人地址”被拆两行把下面顶下去 */
+.search-form :deep(.el-form-item__label) {
+  white-space: nowrap;
+  line-height: 32px;
+}
+
+/* 让“收件人地址”占两列，基本就不会被挤到第二行 */
+.search-form :deep(.addr-item) {
+  grid-column: span 2;
+}
+
+/* 州/省下拉框变大：让 item 更宽 + select 占满 */
+/*.search-form :deep(.state-item) {
+  min-width: 260px;
+}
+.search-form :deep(.state-item .el-select) {
+  width: 100%;
+}*/
+
+</style>

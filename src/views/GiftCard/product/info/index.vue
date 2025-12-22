@@ -21,7 +21,7 @@
         <el-date-picker clearable
           v-model="queryParams.createdAt"
           type="date"
-          value-format="yyyy-MM-dd"
+          value-format="YYYY-MM-DD"
           placeholder="请选择创建时间">
         </el-date-picker>
       </el-form-item>
@@ -29,60 +29,30 @@
         <el-date-picker clearable
           v-model="queryParams.updatedAt"
           type="date"
-          value-format="yyyy-MM-dd"
+          value-format="YYYY-MM-DD"
           placeholder="请选择更新时间">
         </el-date-picker>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+        <el-button type="primary" :icon="Search" size="small" @click="handleQuery">搜索</el-button>
+        <el-button :icon="Refresh" size="small" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="el-icon-plus"
-          size="mini"
-          @click="handleAdd"
-          v-hasPermi="['system:info:add']"
-        >新增</el-button>
+        <el-button type="primary" plain :icon="Plus" size="small" @click="handleAdd" v-hasPermi="['products:info:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="el-icon-edit"
-          size="mini"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['system:info:edit']"
-        >修改</el-button>
+        <el-button type="success" plain :icon="Edit" size="small" :disabled="single" @click="handleUpdate" v-hasPermi="['products:info:edit']">修改</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="el-icon-delete"
-          size="mini"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['system:info:remove']"
-        >删除</el-button>
+        <el-button type="danger" plain :icon="Delete" size="small" :disabled="multiple" @click="handleDelete" v-hasPermi="['products:info:remove']">删除</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="el-icon-download"
-          size="mini"
-          @click="handleExport"
-          v-hasPermi="['system:info:export']"
-        >导出</el-button>
+        <el-button type="warning" plain :icon="Download" size="small" @click="handleExport" v-hasPermi="['products:info:export']">导出</el-button>
       </el-col>
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+      <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" />
     </el-row>
 
     <el-table v-loading="loading" :data="infoList" @selection-change="handleSelectionChange">
@@ -98,39 +68,27 @@
       </el-table-column>
       <el-table-column label="更新时间" align="center" prop="updatedAt" width="180">
         <template #default="{ row }">
-          <span>{{ parseTime(row.createdAt, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(row.updatedAt, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="{ row }">
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-edit"
-            @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:info:edit']"
-          >修改</el-button>
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-delete"
-            @click="handleDelete(scope.row)"
-            v-hasPermi="['system:info:remove']"
-          >删除</el-button>
+          <el-button link type="primary" :icon="Edit" @click="handleUpdate(row)" v-hasPermi="['products:info:edit']">修改</el-button>
+          <el-button link type="danger" :icon="Delete" @click="handleDelete(row)" v-hasPermi="['products:info:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
 
     <pagination
-      v-show="total>0"
-      :total="total"
-      :page.sync="queryParams.pageNum"
-      :limit.sync="queryParams.pageSize"
-      @pagination="getList"
+        v-show="total > 0"
+        :total="total"
+        v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize"
+        @pagination="getList"
     />
 
     <!-- 添加或修改礼品卡可购买商品信息对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="商品名称" prop="productName">
           <el-input v-model="form.productName" placeholder="请输入商品名称" />
@@ -145,7 +103,7 @@
           <el-date-picker clearable
             v-model="form.createdAt"
             type="date"
-            value-format="yyyy-MM-dd"
+            value-format="YYYY-MM-DD"
             placeholder="请选择创建时间">
           </el-date-picker>
         </el-form-item>
@@ -153,15 +111,17 @@
           <el-date-picker clearable
             v-model="form.updatedAt"
             type="date"
-            value-format="yyyy-MM-dd"
+            value-format="YYYY-MM-DD"
             placeholder="请选择更新时间">
           </el-date-picker>
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -169,9 +129,30 @@
 <script>
 import { listInfo, getInfo, delInfo, addInfo, updateInfo } from "@/api/GiftCard/productInfo"
 import {parseTime} from "../../../../utils/ruoyi.js";
+import { Search, Refresh, Plus, Edit, Delete, Download } from '@element-plus/icons-vue'
 
 export default {
   name: "Info",
+  computed: {
+    Download() {
+      return Download
+    },
+    Delete() {
+      return Delete
+    },
+    Edit() {
+      return Edit
+    },
+    Plus() {
+      return Plus
+    },
+    Refresh() {
+      return Refresh
+    },
+    Search() {
+      return Search
+    }
+  },
   data() {
     return {
       // 遮罩层
@@ -281,6 +262,7 @@ export default {
     handleUpdate(row) {
       this.reset()
       const id = row.id || this.ids
+      if (!id || (Array.isArray(id) && id.length === 0)) return
       getInfo(id).then(response => {
         this.form = response.data
         this.open = true
@@ -310,6 +292,7 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids
+      if (!id || (Array.isArray(id) && id.length === 0)) return
       this.$modal.confirm('是否确认删除礼品卡可购买商品信息编号为"' + ids + '"的数据项？').then(function() {
         return delInfo(ids)
       }).then(() => {
