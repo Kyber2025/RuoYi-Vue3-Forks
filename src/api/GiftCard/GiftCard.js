@@ -42,3 +42,12 @@ export function delGiftCard(id) {
     method: 'delete'
   })
 }
+
+// 新增：批量修改礼品卡 usage_type 和 status
+export function batchUpdateGiftCard(data) {
+  return request({
+    url: '/GiftCard/GiftCard/batchUpdate',
+    method: 'put',
+    data: data
+  })
+}

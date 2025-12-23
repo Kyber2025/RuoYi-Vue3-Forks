@@ -1,4 +1,4 @@
-<template>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="90px" class="search-form">
       <el-form-item label="发件人" prop="sender">
@@ -131,6 +131,16 @@
       </el-col>
       <el-col :span="1.5">
         <el-button
+            type="info"
+            plain
+            icon="EditPen"
+            :disabled="multiple"
+            @click="handleBatchUpdate"
+            v-hasPermi="['GiftCard:GiftCard:edit']"
+        >批量修改</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
           type="success"
           plain
           icon="Edit"
@@ -204,6 +214,7 @@
       :total="total"
       v-model:page="queryParams.pageNum"
       v-model:limit="queryParams.pageSize"
+      :page-sizes="[10, 20, 50, 100, 200]"
       @pagination="getList"
     />
 
@@ -279,11 +290,53 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 批量修改对话框 -->
+    <el-dialog title="批量修改使用类型和状态" v-model="batchOpen" width="500px" append-to-body>
+      <el-form :model="batchForm" label-width="100px">
+        <el-form-item label="使用类型">
+          <el-select
+              v-model="batchForm.usageType"
+              placeholder="请选择使用类型（留空不修改）"
+              clearable
+              style="width: 100%"
+          >
+            <el-option
+                v-for="dict in ka_usage_type"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select
+              v-model="batchForm.status"
+              placeholder="请选择状态（留空不修改）"
+              clearable
+              style="width: 100%"
+          >
+            <el-option
+                v-for="dict in ka_status"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitBatchUpdate">确 定</el-button>
+          <el-button @click="batchOpen = false">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup name="GiftCard">
-import { listGiftCard, getGiftCard, delGiftCard, addGiftCard, updateGiftCard } from "@/api/GiftCard/GiftCard"
+import { listGiftCard, getGiftCard, delGiftCard, addGiftCard, updateGiftCard, batchUpdateGiftCard } from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
 
 const { proxy } = getCurrentInstance()
@@ -385,6 +438,59 @@ function resetQuery() {
   dateRange.value = []
   proxy.resetForm("queryRef")
   handleQuery()
+}
+
+// 新增：批量修改相关
+const batchOpen = ref(false)
+const batchForm = ref({
+  usageType: null,
+  status: null
+})
+
+/** 批量修改按钮操作 */
+function handleBatchUpdate() {
+  if (ids.value.length === 0) {
+    proxy.$modal.msgError("请至少选择一条数据")
+    return
+  }
+  batchForm.value = {
+    usageType: null,
+    status: null
+  }
+  batchOpen.value = true
+}
+
+/** 提交批量修改 */
+/** 提交批量修改 */
+function submitBatchUpdate() {
+  // 校验：至少选择一项要修改的内容
+  if (batchForm.value.usageType === null && batchForm.value.status === null) {
+    proxy.$modal.msgWarning("请至少选择一项要修改的内容")
+    return
+  }
+
+  // 确认对话框
+  proxy.$modal.confirm(`是否确认批量修改选中的 ${ids.value.length} 条礼品卡？`)
+      .then(() => {
+        // 构造请求参数
+        const data = {
+          ids: ids.value,
+          usageType: batchForm.value.usageType || null,  // 空字符串或 undefined 转为 null
+          status: batchForm.value.status !== null && batchForm.value.status !== ''
+              ? Number(batchForm.value.status)
+              : null
+        }
+
+        // 调用我们刚才在 api 中定义的 batchUpdateGiftCard
+        return batchUpdateGiftCard(data)
+      })
+      .then(() => {
+        proxy.$modal.msgSuccess("批量修改成功")
+        batchOpen.value = false
+        getList()  // 刷新表格
+      })
+      .catch(() => {
+      })
 }
 
 // 多选框选中数据
