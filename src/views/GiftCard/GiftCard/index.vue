@@ -168,6 +168,18 @@
           v-hasPermi="['GiftCard:GiftCard:export']"
         >导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-upload
+            class="upload-demo"
+            action=""
+            :http-request="handleImport"
+            :show-file-list="false"
+            accept=".xlsx,.xls"
+            v-hasPermi="['GiftCard:GiftCard:import']"
+        >
+          <el-button type="primary" plain icon="Upload">导入更新</el-button>
+        </el-upload>
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -336,7 +348,8 @@
 </template>
 
 <script setup name="GiftCard">
-import { listGiftCard, getGiftCard, delGiftCard, addGiftCard, updateGiftCard, batchUpdateGiftCard } from "@/api/GiftCard/GiftCard"
+import { listGiftCard, getGiftCard, delGiftCard, addGiftCard, updateGiftCard,
+  batchUpdateGiftCard, importGiftCardStatus } from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
 
 const { proxy } = getCurrentInstance()
@@ -461,7 +474,6 @@ function handleBatchUpdate() {
 }
 
 /** 提交批量修改 */
-/** 提交批量修改 */
 function submitBatchUpdate() {
   // 校验：至少选择一项要修改的内容
   if (batchForm.value.usageType === null && batchForm.value.status === null) {
@@ -558,6 +570,37 @@ function handleExport() {
     endTime: dateRange.value?.[1] || undefined
   }
   proxy.download('GiftCard/GiftCard/export', query, `GiftCard_${new Date().getTime()}.xlsx`)
+}
+
+/** 导入更新状态（上传Excel） */
+function handleImport(param) {
+  const file = param.file
+  if (!file) {
+    proxy.$modal.msgError("请选择文件")
+    return
+  }
+
+  // 检查文件类型
+  const fileName = file.name
+  const fileExt = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()
+  if (!['xlsx', 'xls'].includes(fileExt)) {
+    proxy.$modal.msgError("只能上传 Excel 文件（.xlsx 或 .xls）")
+    return
+  }
+
+  const formData = new FormData()
+  formData.append("file", file)
+
+  proxy.$modal.loading("正在导入，请稍候...")
+
+  importGiftCardStatus(formData).then(res => {
+    proxy.$modal.msgSuccess(res.msg || "导入成功")
+    getList() // 刷新表格，显示最新状态
+  }).catch(() => {
+    proxy.$modal.msgError("导入失败，请检查文件格式或数据是否正确")
+  }).finally(() => {
+    proxy.$modal.closeLoading()
+  })
 }
 
 getList()
