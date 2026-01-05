@@ -1,22 +1,6 @@
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="90px" class="search-form">
-      <el-form-item label="发件人" prop="sender">
-        <el-input
-          v-model="queryParams.sender"
-          placeholder="请输入发件人"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="主题" prop="subject">
-        <el-input
-          v-model="queryParams.subject"
-          placeholder="请输入主题"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
       <el-form-item label="类型" prop="giftType" class="search-auto-item">
         <el-select
             v-model="queryParams.giftType"
@@ -179,6 +163,23 @@
         >
           <el-button type="primary" plain icon="Upload">导入更新</el-button>
         </el-upload>
+      </el-col>
+
+      <el-col :span="1.5">
+        <el-button
+            type="primary"
+            plain
+            icon="Search"
+            @click="handleOpenNumSearch"
+        >按数量提取</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+            type="success"
+            plain
+            icon="Money"
+            @click="handleOpenAmountSearch"
+        >按金额提取</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
@@ -344,12 +345,64 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 限制卡查询 -->
+    <el-dialog title="按数量提取可用卡" v-model="openNumSearch" width="450px" append-to-body>
+      <el-form :model="numSearchForm" label-width="100px">
+        <el-form-item label="礼品卡类型" required>
+          <el-select v-model="numSearchForm.giftType" placeholder="请选择类型" style="width: 100%">
+            <el-option
+                v-for="dict in gift_type"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="单张面值" required>
+          <el-input type="number" v-model="numSearchForm.amount" placeholder="例如: 100" />
+        </el-form-item>
+        <el-form-item label="提取数量" required>
+          <el-input type="number" v-model="numSearchForm.totalNum" placeholder="例如: 10" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button type="primary" @click="submitNumSearch">查询提取</el-button>
+        <el-button @click="openNumSearch = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog title="按金额提取可用卡" v-model="openAmountSearch" width="450px" append-to-body>
+      <el-form :model="amountSearchForm" label-width="100px">
+        <el-form-item label="礼品卡类型" required>
+          <el-select v-model="amountSearchForm.giftType" placeholder="请选择类型" style="width: 100%">
+            <el-option
+                v-for="dict in gift_type"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="单张面值" required>
+          <el-input type="number" v-model="amountSearchForm.amount" placeholder="例如: 100" />
+        </el-form-item>
+        <el-form-item label="目标总金额" required>
+          <el-input type="number" v-model="amountSearchForm.totalAmount" placeholder="例如: 3000 (必须能整除面值)" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button type="primary" @click="submitAmountSearch">查询提取</el-button>
+        <el-button @click="openAmountSearch = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
   </div>
 </template>
 
 <script setup name="GiftCard">
 import { listGiftCard, getGiftCard, delGiftCard, addGiftCard, updateGiftCard,
-  batchUpdateGiftCard, importGiftCardStatus } from "@/api/GiftCard/GiftCard"
+  batchUpdateGiftCard, importGiftCardStatus, searchByNum, searchByAmount } from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
 
 const { proxy } = getCurrentInstance()
@@ -376,8 +429,6 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
-    sender: null,
-    subject: null,
     giftType: null,
     //dtStr: null,
 
@@ -395,6 +446,92 @@ const data = reactive({
 })
 
 const { queryParams, form, rules } = toRefs(data)
+
+const openNumSearch = ref(false)
+const openAmountSearch = ref(false)
+const openResult = ref(false)
+const resultList = ref([])
+const resultTotalAmount = ref(0)
+
+const numSearchForm = ref({
+  giftType: null,
+  amount: null,
+  totalNum: null
+})
+
+const amountSearchForm = ref({
+  giftType: null,
+  amount: null,
+  totalAmount: null
+})
+
+// 2. 打开对话框方法
+function handleOpenNumSearch() {
+  numSearchForm.value = { giftType: null, amount: null, totalNum: null }
+  openNumSearch.value = true
+}
+
+function handleOpenAmountSearch() {
+  amountSearchForm.value = { giftType: null, amount: null, totalAmount: null }
+  openAmountSearch.value = true
+}
+
+// 3. 提交按数量查询
+function submitNumSearch() {
+  const params = numSearchForm.value
+  if (!params.giftType || !params.amount || !params.totalNum) {
+    proxy.$modal.msgError("请完整填写所有选项")
+    return
+  }
+
+  proxy.$modal.loading("正在提取中...")
+  searchByNum(params).then(res => {
+    proxy.$modal.closeLoading()
+    if (res.data) {
+      showResult(res.data)
+      openNumSearch.value = false
+    }
+  }).catch(() => {
+    proxy.$modal.closeLoading()
+  })
+}
+
+// 4. 提交按金额查询
+function submitAmountSearch() {
+  const params = amountSearchForm.value
+  if (!params.giftType || !params.amount || !params.totalAmount) {
+    proxy.$modal.msgError("请完整填写所有选项")
+    return
+  }
+
+  proxy.$modal.loading("正在提取中...")
+  searchByAmount(params).then(res => {
+    proxy.$modal.closeLoading()
+    if (res.data) {
+      showResult(res.data)
+      openAmountSearch.value = false
+    }
+  }).catch(() => {
+    proxy.$modal.closeLoading()
+  })
+}
+
+// 5. 显示结果通用方法 (修改版：直接渲染到主表格)
+function showResult(list) {
+  // 1. 将查询到的数据直接赋值给主表格数据源
+  GiftCardList.value = list
+
+  // 2. 更新底部分页的总数显示
+  total.value = list.length
+
+  // 3. 计算并更新左下角的总金额显示
+  const sum = list.reduce((prev, curr) => prev + (curr.amount || 0), 0)
+  amountSum.value = "本次提取总金额: " + sum
+
+  // 4. 关闭不需要的弹窗，并提示成功
+  openResult.value = false // 确保结果弹窗不打开
+  proxy.$modal.msgSuccess("提取成功，结果已显示在下方列表中")
+}
 
 /** 查询礼品卡列表 */
 function getList() {

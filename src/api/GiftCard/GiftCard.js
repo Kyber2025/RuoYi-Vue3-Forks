@@ -66,3 +66,21 @@ export function importGiftCardStatus(data) {
     timeout: 60000
   })
 }
+
+// 按数量提取可用卡
+export function searchByNum(query) {
+  return request({
+    url: '/GiftCard/GiftCard/searchByNum',
+    method: 'get',
+    params: query
+  })
+}
+
+// 按总金额提取可用卡
+export function searchByAmount(query) {
+  return request({
+    url: '/GiftCard/GiftCard/searchByAmount',
+    method: 'get',
+    params: query
+  })
+}
