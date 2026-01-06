@@ -797,13 +797,30 @@ function handleExport() {
     endTime: dateRange.value?.[1] || undefined
   }
 
-  // 【新增】关键逻辑：如果是提取模式，只导出提取到的那几条
+  // 1. 计算即将导出的数据量
+  let dataCount = 0;
+
   if (isExtractionMode.value && allExtractedData.value.length > 0) {
-    // 获取所有提取数据的 ID，并转为逗号分隔的字符串
+    // --- 提取模式 ---
+    // 数量 = 缓存数组的长度
+    dataCount = allExtractedData.value.length;
+    // 关键：把这些特定的 ID 传给后端，只导出这几条
     query.ids = allExtractedData.value.map(item => item.id).join(',');
+  } else {
+    // --- 普通模式 ---
+    // 数量 = 列表总数 (total 是分页组件绑定的总条数变量)
+    dataCount = total.value;
   }
 
-  proxy.download('GiftCard/GiftCard/export', query, `GiftCard_${new Date().getTime()}.xlsx`)
+  // 2. 弹出确认窗口
+  proxy.$modal.confirm(`即将导出 ${dataCount} 条数据，是否继续？`)
+      .then(() => {
+        // 3. 用户确认后，执行下载
+        proxy.download('GiftCard/GiftCard/export', query, `GiftCard_${new Date().getTime()}.xlsx`)
+      })
+      .catch(() => {
+        // 用户取消
+      });
 }
 
 // 【新增导出并修改】点击“导出并修改”按钮
@@ -828,8 +845,20 @@ function submitExportWithUpdate() {
     return;
   }
 
-  // 再次确认
-  proxy.$modal.confirm('确认要导出并修改当前结果集的状态吗？').then(() => {
+  // 计算即将操作的数据量
+  let dataCount = 0;
+  if (isExtractionMode.value) {
+    // 如果是提取模式，数量就是缓存数组的长度
+    dataCount = allExtractedData.value.length;
+  } else {
+    // 如果是普通模式，数量就是当前查询的总条数
+    dataCount = total.value;
+  }
+
+  // 弹出带数量的确认窗口
+  proxy.$modal.confirm(
+      `当前共有 ${dataCount} 条数据等待处理。\n\n确认要导出并修改这 ${dataCount} 条数据的状态吗？`
+  ).then(() => {
     doRealExport();
   }).catch(() => {});
 }
