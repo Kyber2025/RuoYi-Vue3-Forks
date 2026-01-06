@@ -66,3 +66,37 @@ export function importGiftCardStatus(data) {
     timeout: 60000
   })
 }
+
+// 按数量提取可用卡
+export function searchByNum(query) {
+  return request({
+    url: '/GiftCard/GiftCard/searchByNum',
+    method: 'get',
+    params: query
+  })
+}
+
+// 按总金额提取可用卡
+export function searchByAmount(query) {
+  return request({
+    url: '/GiftCard/GiftCard/searchByAmount',
+    method: 'get',
+    params: query
+  })
+}
+
+// 导出并修改状态
+export function exportAndChangeStatus(query, newUsageType, newStatus,ids) {
+  return request({
+    url: '/GiftCard/GiftCard/exportAndChangeStatus',
+    method: 'post',
+    // 将查询参数和新的状态参数合并发送
+    params: {
+      ...query,
+      newUsageType: newUsageType,
+      newStatus: newStatus,
+      ids: ids
+    },
+    responseType: 'blob' // 必须设置，用于下载文件
+  })
+}
