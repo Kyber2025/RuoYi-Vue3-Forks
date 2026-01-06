@@ -84,3 +84,19 @@ export function searchByAmount(query) {
     params: query
   })
 }
+
+// 导出并修改状态
+export function exportAndChangeStatus(query, newUsageType, newStatus,ids) {
+  return request({
+    url: '/GiftCard/GiftCard/exportAndChangeStatus',
+    method: 'post',
+    // 将查询参数和新的状态参数合并发送
+    params: {
+      ...query,
+      newUsageType: newUsageType,
+      newStatus: newStatus,
+      ids: ids
+    },
+    responseType: 'blob' // 必须设置，用于下载文件
+  })
+}

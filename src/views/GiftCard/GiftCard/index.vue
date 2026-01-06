@@ -113,6 +113,7 @@
           v-hasPermi="['GiftCard:GiftCard:add']"
         >新增</el-button>
       </el-col>
+
       <el-col :span="1.5">
         <el-button
             type="info"
@@ -123,6 +124,7 @@
             v-hasPermi="['GiftCard:GiftCard:edit']"
         >批量修改</el-button>
       </el-col>
+
       <el-col :span="1.5">
         <el-button
           type="success"
@@ -133,6 +135,7 @@
           v-hasPermi="['GiftCard:GiftCard:edit']"
         >修改</el-button>
       </el-col>
+
       <el-col :span="1.5">
         <el-button
           type="danger"
@@ -143,6 +146,7 @@
           v-hasPermi="['GiftCard:GiftCard:remove']"
         >删除</el-button>
       </el-col>
+
       <el-col :span="1.5">
         <el-button
           type="warning"
@@ -152,6 +156,7 @@
           v-hasPermi="['GiftCard:GiftCard:export']"
         >导出</el-button>
       </el-col>
+
       <el-col :span="1.5">
         <el-upload
             class="upload-demo"
@@ -181,13 +186,23 @@
             @click="handleOpenAmountSearch"
         >按金额提取</el-button>
       </el-col>
-      <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
+
+      <el-col :span="1.5" style="margin-left: auto;">
+        <el-button
+            type="warning"
+            plain
+            icon="Download"
+            @click="handleExportWithUpdate"
+            v-hasPermi="['GiftCard:GiftCard:export']"
+        >导出并修改</el-button>
+      </el-col>
     </el-row>
 
     <el-table v-loading="loading" :data="GiftCardList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="主键" align="center" prop="id" />
       <el-table-column label="发件人" align="center" prop="sender" />
+      <el-table-column label="拥有者用户ID" align="center" prop="owner_user_id" />
       <el-table-column label="主题" align="center" prop="subject" />
       <el-table-column label="类型" align="center" prop="giftType">
         <template #default="scope">
@@ -228,7 +243,7 @@
       v-model:page="queryParams.pageNum"
       v-model:limit="queryParams.pageSize"
       :page-sizes="[10, 20, 50, 100, 200]"
-      @pagination="getList"
+      @pagination="handlePagination"
     />
 
     <!-- 添加或修改礼品卡对话框 -->
@@ -397,12 +412,47 @@
       </template>
     </el-dialog>
 
+    <el-dialog title="导出并变更状态" v-model="exportUpdateOpen" width="500px" append-to-body>
+      <div style="margin-bottom: 20px; color: #e6a23c;">
+        <el-icon><Warning /></el-icon>
+        注意：此操作将导出当前查询结果集中的所有数据，并将它们的状态统一修改为以下值。
+      </div>
+      <el-form :model="exportUpdateForm" label-width="100px">
+        <el-form-item label="变更使用类型">
+          <el-select v-model="exportUpdateForm.newUsageType" placeholder="请选择(留空不修改)" clearable style="width: 100%">
+            <el-option
+                v-for="dict in ka_usage_type"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="变更状态">
+          <el-select v-model="exportUpdateForm.newStatus" placeholder="请选择(留空不修改)" clearable style="width: 100%">
+            <el-option
+                v-for="dict in ka_status"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitExportWithUpdate">确 定 导 出</el-button>
+          <el-button @click="exportUpdateOpen = false">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
   </div>
 </template>
 
 <script setup name="GiftCard">
 import { listGiftCard, getGiftCard, delGiftCard, addGiftCard, updateGiftCard,
-  batchUpdateGiftCard, importGiftCardStatus, searchByNum, searchByAmount } from "@/api/GiftCard/GiftCard"
+  batchUpdateGiftCard, importGiftCardStatus, searchByNum, searchByAmount,exportAndChangeStatus } from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
 
 const { proxy } = getCurrentInstance()
@@ -423,6 +473,8 @@ const total = ref(0)
 const amountSum = ref(0)
 const title = ref("")
 const dateRange = ref([])
+const isExtractionMode = ref(false) // 标记：当前是否处于“提取结果查看”模式
+const allExtractedData = ref([])    // 缓存：存储提取回来的所有数据
 
 const data = reactive({
   form: {},
@@ -464,6 +516,12 @@ const amountSearchForm = ref({
   amount: null,
   totalAmount: null
 })
+
+const exportUpdateOpen = ref(false);
+const exportUpdateForm = ref({
+  newUsageType: null,
+  newStatus: null
+});
 
 // 2. 打开对话框方法
 function handleOpenNumSearch() {
@@ -518,24 +576,56 @@ function submitAmountSearch() {
 
 // 5. 显示结果通用方法 (修改版：直接渲染到主表格)
 function showResult(list) {
-  // 1. 将查询到的数据直接赋值给主表格数据源
-  GiftCardList.value = list
+  // 【新增】1. 开启提取模式
+  isExtractionMode.value = true
 
-  // 2. 更新底部分页的总数显示
+  // 【新增】2. 把后端给的所有数据备份到本地
+  allExtractedData.value = list
+
+  // 3. 设置总条数（分页组件会根据这个计算有多少页）
   total.value = list.length
 
-  // 3. 计算并更新左下角的总金额显示
+  // 4. 计算总金额
   const sum = list.reduce((prev, curr) => prev + (curr.amount || 0), 0)
   amountSum.value = "本次提取总金额: " + sum
 
-  // 4. 关闭不需要的弹窗，并提示成功
-  openResult.value = false // 确保结果弹窗不打开
-  proxy.$modal.msgSuccess("提取成功，结果已显示在下方列表中")
+  // 【新增】5. 强制重置到第 1 页，防止用户之前翻到了第 5 页导致数据显示为空
+  queryParams.value.pageNum = 1
+
+  // 【新增】6. 手动触发一次切片，显示第 1 页数据
+  handlePagination({
+    page: queryParams.value.pageNum,
+    limit: queryParams.value.pageSize
+  })
+
+  // 7. 关闭弹窗并提示
+  openResult.value = false
+  proxy.$modal.msgSuccess("提取成功，结果已展示")
+}
+
+/** * 统一的分页处理入口
+ * 根据当前模式，决定是“查库”还是“查本地数组”
+ */
+function handlePagination({ page, limit }) {
+  if (isExtractionMode.value) {
+    // --- 模式 A: 前端内存分页 (针对提取结果) ---
+    // 计算切片的起始和结束位置
+    const start = (page - 1) * limit
+    const end = page * limit
+    // 从缓存的全量数据中，切出一页给表格显示
+    GiftCardList.value = allExtractedData.value.slice(start, end)
+  } else {
+    // --- 模式 B: 后端数据库分页 (针对普通查询) ---
+    getList()
+  }
 }
 
 /** 查询礼品卡列表 */
 function getList() {
   loading.value = true
+
+  isExtractionMode.value = false
+  allExtractedData.value = []
 
   const query = {
     ...queryParams.value,
@@ -706,7 +796,74 @@ function handleExport() {
     beginTime: dateRange.value?.[0] || undefined,
     endTime: dateRange.value?.[1] || undefined
   }
+
+  // 【新增】关键逻辑：如果是提取模式，只导出提取到的那几条
+  if (isExtractionMode.value && allExtractedData.value.length > 0) {
+    // 获取所有提取数据的 ID，并转为逗号分隔的字符串
+    query.ids = allExtractedData.value.map(item => item.id).join(',');
+  }
+
   proxy.download('GiftCard/GiftCard/export', query, `GiftCard_${new Date().getTime()}.xlsx`)
+}
+
+// 【新增导出并修改】点击“导出并修改”按钮
+function handleExportWithUpdate() {
+  exportUpdateForm.value = {
+    newUsageType: null,
+    newStatus: null
+  };
+  exportUpdateOpen.value = true;
+}
+
+// 【新增导出并修改】提交导出并修改
+function submitExportWithUpdate() {
+  const newUsageType = exportUpdateForm.value.newUsageType;
+  const newStatus = exportUpdateForm.value.newStatus;
+
+  // 校验：防止误操作，至少要选一个，或者你可以允许都不选（仅导出）
+  if (!newUsageType && (newStatus === null || newStatus === '')) {
+    proxy.$modal.confirm('您未选择任何变更项，将仅执行普通导出，是否继续？').then(() => {
+      doRealExport();
+    }).catch(() => {});
+    return;
+  }
+
+  // 再次确认
+  proxy.$modal.confirm('确认要导出并修改当前结果集的状态吗？').then(() => {
+    doRealExport();
+  }).catch(() => {});
+}
+
+// 【新增导出并修改】执行真正的请求
+function doRealExport() {
+  const query = {
+    ...queryParams.value,
+    beginTime: dateRange.value?.[0] || undefined,
+    endTime: dateRange.value?.[1] || undefined
+  };
+
+  let ids = null;
+  if (isExtractionMode.value && allExtractedData.value.length > 0) {
+    // 如果是提取模式，收集所有提取数据的ID，用逗号分隔或直接传数组（取决于axios配置，RuoYi通常支持逗号分隔）
+    // 这里生成逗号分隔字符串，后端 Long[] 可以自动解析
+    ids = allExtractedData.value.map(item => item.id).join(',');
+  }
+
+  proxy.$modal.loading("正在导出并更新数据，请稍候...");
+
+  exportAndChangeStatus(query, exportUpdateForm.value.newUsageType, exportUpdateForm.value.newStatus, ids)
+      .then((res) => {
+        // 处理文件下载
+        const blob = new Blob([res])
+        saveAs(blob, `GiftCard_Updated_${new Date().getTime()}.xlsx`)
+
+        proxy.$modal.closeLoading();
+        proxy.$modal.msgSuccess("操作成功");
+        exportUpdateOpen.value = false;
+      })
+      .catch(() => {
+        proxy.$modal.closeLoading();
+      });
 }
 
 /** 导入更新状态（上传Excel） */
