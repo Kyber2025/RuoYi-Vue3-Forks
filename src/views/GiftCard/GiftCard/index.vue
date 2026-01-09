@@ -16,17 +16,20 @@
           />
         </el-select>
       </el-form-item>
-<!--      <el-form-item label="时间" prop="dtStr">
-        <el-input
-          v-model="queryParams.dtStr"
-          placeholder="请输入时间"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>-->
       <el-form-item label="创建时间" style="width: 308px">
         <el-date-picker
             v-model="dateRange"
+            type="daterange"
+            value-format="YYYY-MM-DD"
+            format="YYYY-MM-DD"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+        />
+      </el-form-item>
+      <el-form-item label="更新时间" style="width: 308px">
+        <el-date-picker
+            v-model="updateDateRange"
             type="daterange"
             value-format="YYYY-MM-DD"
             format="YYYY-MM-DD"
@@ -201,9 +204,7 @@
     <el-table v-loading="loading" :data="GiftCardList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="发件人" align="center" prop="sender" />
       <el-table-column label="拥有者用户ID" align="center" prop="owner_user_id" />
-      <el-table-column label="主题" align="center" prop="subject" />
       <el-table-column label="类型" align="center" prop="giftType">
         <template #default="scope">
           <dict-tag :options="gift_type" :value="scope.row.giftType"/>
@@ -226,6 +227,11 @@
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
+        <template #default="scope">
+          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -467,6 +473,7 @@ const total = ref(0)
 const amountSum = ref(0)
 const title = ref("")
 const dateRange = ref([])
+const updateDateRange = ref([])
 const isExtractionMode = ref(false) // 标记：当前是否处于“提取结果查看”模式
 const allExtractedData = ref([])    // 缓存：存储提取回来的所有数据
 
@@ -485,7 +492,9 @@ const data = reactive({
     usageType: null,
     status: null,
     beginTime: undefined,
-    endTime: undefined
+    endTime: undefined,
+    beginUpdateTime: undefined,
+    endUpdateTime: undefined
   },
   rules: {
   }
@@ -624,7 +633,9 @@ function getList() {
   const query = {
     ...queryParams.value,
     beginTime: dateRange.value?.[0] || undefined,
-    endTime: dateRange.value?.[1] || undefined
+    endTime: dateRange.value?.[1] || undefined,
+    beginUpdateTime: updateDateRange.value?.[0] || undefined,
+    endUpdateTime: updateDateRange.value?.[1] || undefined
   }
 
   listGiftCard(query).then(response => {
@@ -670,6 +681,7 @@ function handleQuery() {
 /** 重置按钮操作 */
 function resetQuery() {
   dateRange.value = []
+  updateDateRange.value = []
   proxy.resetForm("queryRef")
   handleQuery()
 }
@@ -788,7 +800,9 @@ function handleExport() {
   const query = {
     ...queryParams.value,
     beginTime: dateRange.value?.[0] || undefined,
-    endTime: dateRange.value?.[1] || undefined
+    endTime: dateRange.value?.[1] || undefined,
+    beginUpdateTime: updateDateRange.value?.[0] || undefined,
+    endUpdateTime: updateDateRange.value?.[1] || undefined
   }
 
   // 1. 计算即将导出的数据量
@@ -862,7 +876,9 @@ function doRealExport() {
   const query = {
     ...queryParams.value,
     beginTime: dateRange.value?.[0] || undefined,
-    endTime: dateRange.value?.[1] || undefined
+    endTime: dateRange.value?.[1] || undefined,
+    beginUpdateTime: updateDateRange.value?.[0] || undefined,
+    endUpdateTime: updateDateRange.value?.[1] || undefined
   };
 
   let ids = null;
