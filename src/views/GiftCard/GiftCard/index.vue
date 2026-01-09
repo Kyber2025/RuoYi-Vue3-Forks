@@ -249,12 +249,6 @@
     <!-- 添加或修改礼品卡对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="GiftCardRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="发件人" prop="sender">
-          <el-input v-model="form.sender" placeholder="请输入发件人" />
-        </el-form-item>
-        <el-form-item label="主题" prop="subject">
-          <el-input v-model="form.subject" placeholder="请输入主题" />
-        </el-form-item>
         <el-form-item label="类型" prop="giftType">
           <el-select v-model="form.giftType" placeholder="请选择类型">
             <el-option
