@@ -291,14 +291,16 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const ids = row.id || this.ids
-      if (!id || (Array.isArray(id) && id.length === 0)) return
-      this.$modal.confirm('是否确认删除礼品卡可购买商品信息编号为"' + ids + '"的数据项？').then(function() {
-        return delInfo(ids)
-      }).then(() => {
-        this.getList()
-        this.$modal.msgSuccess("删除成功")
-      }).catch(() => {})
+      const ids = row?.id ?? this.ids
+      if (!ids || (Array.isArray(ids) && ids.length === 0)) return
+
+      this.$modal.confirm(`是否确认删除礼品卡可购买商品信息编号为"${ids}"的数据项？`)
+          .then(() => delInfo(ids))
+          .then(() => {
+            this.getList()
+            this.$modal.msgSuccess("删除成功")
+          })
+          .catch(() => {})
     },
     /** 导出按钮操作 */
     handleExport() {

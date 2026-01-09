@@ -204,7 +204,9 @@
     <el-table v-loading="loading" :data="GiftCardList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="拥有者用户ID" align="center" prop="owner_user_id" />
+      <el-table-column label="发件人" align="center" prop="sender" />
+      <el-table-column label="拥有者" align="center" prop="ownerUserName" />
+      <el-table-column label="主题" align="center" prop="subject" />
       <el-table-column label="类型" align="center" prop="giftType">
         <template #default="scope">
           <dict-tag :options="gift_type" :value="scope.row.giftType"/>
@@ -222,6 +224,12 @@
       <el-table-column label="状态" align="center" prop="status">
         <template #default="scope">
           <dict-tag :options="ka_status" :value="scope.row.status"/>
+        </template>
+      </el-table-column>
+      <el-table-column label="更新人" align="center" prop="updateUser" />
+      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
+        <template #default="scope">
+          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
@@ -255,6 +263,12 @@
     <!-- 添加或修改礼品卡对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="GiftCardRef" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="发件人" prop="sender">
+          <el-input v-model="form.sender" placeholder="请输入发件人" />
+        </el-form-item>
+        <el-form-item label="主题" prop="subject">
+          <el-input v-model="form.subject" placeholder="请输入主题" />
+        </el-form-item>
         <el-form-item label="类型" prop="giftType">
           <el-select v-model="form.giftType" placeholder="请选择类型">
             <el-option
