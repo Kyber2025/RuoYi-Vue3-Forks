@@ -100,3 +100,11 @@ export function exportAndChangeStatus(query, newUsageType, newStatus,ids) {
     responseType: 'blob' // 必须设置，用于下载文件
   })
 }
+
+// 查询礼品卡拥有者下拉列表
+export function listOwnerOptions() {
+  return request({
+    url: '/GiftCard/GiftCard/ownerOptions',
+    method: 'get'
+  })
+}

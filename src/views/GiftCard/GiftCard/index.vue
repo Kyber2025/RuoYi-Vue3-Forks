@@ -100,6 +100,22 @@
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="拥有者" prop="ownerId" class="search-auto-item">
+        <el-select
+            v-model="queryParams.ownerId"
+            placeholder="请选择拥有者"
+            clearable
+            class="search-auto-select"
+        >
+          <el-option
+              v-for="item in ownerOptions"
+              :key="item.ownerId"
+              :label="item.ownerName"
+              :value="item.ownerId"
+          />
+        </el-select>
+      </el-form-item>
+
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -203,10 +219,8 @@
 
     <el-table v-loading="loading" :data="GiftCardList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="id" />
       <el-table-column label="发件人" align="center" prop="sender" />
       <el-table-column label="拥有者" align="center" prop="ownerUserName" />
-      <el-table-column label="主题" align="center" prop="subject" />
       <el-table-column label="类型" align="center" prop="giftType">
         <template #default="scope">
           <dict-tag :options="gift_type" :value="scope.row.giftType"/>
@@ -460,7 +474,7 @@
 </template>
 
 <script setup name="GiftCard">
-import { listGiftCard, getGiftCard, delGiftCard, addGiftCard, updateGiftCard,
+import { listGiftCard, getGiftCard, delGiftCard, addGiftCard, updateGiftCard,listOwnerOptions,
   batchUpdateGiftCard, importGiftCardStatus, searchByNum, searchByAmount,exportAndChangeStatus } from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
 
@@ -483,6 +497,7 @@ const amountSum = ref(0)
 const title = ref("")
 const dateRange = ref([])
 const updateDateRange = ref([])
+const ownerOptions = ref([])
 const isExtractionMode = ref(false) // 标记：当前是否处于“提取结果查看”模式
 const allExtractedData = ref([])    // 缓存：存储提取回来的所有数据
 
@@ -493,7 +508,7 @@ const data = reactive({
     pageSize: 10,
     giftType: null,
     //dtStr: null,
-
+    ownerId: null,
     code: null,
     orderNumber: null,
     amount: null,
@@ -685,6 +700,20 @@ function reset() {
 function handleQuery() {
   queryParams.value.pageNum = 1
   getList()
+}
+
+
+function loadOwnerOptions() {
+  listOwnerOptions().then(res => {
+    const list = res?.data ?? res?.rows ?? []
+    ownerOptions.value = [
+      { ownerId: -1, ownerName: '未分配' },
+      ...list
+    ]
+  }).catch(err => {
+    console.error("loadOwnerOptions error:", err)
+    ownerOptions.value = [{ ownerId: -1, ownerName: '未分配' }]
+  })
 }
 
 /** 重置按钮操作 */
@@ -944,7 +973,7 @@ function handleImport(param) {
     proxy.$modal.closeLoading()
   })
 }
-
+loadOwnerOptions()
 getList()
 </script>
 
