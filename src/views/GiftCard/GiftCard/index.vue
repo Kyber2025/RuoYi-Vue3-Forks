@@ -417,7 +417,7 @@
         <el-form-item label="分配给(拥有者)" required>
           <el-select v-model="assignForm.ownUserId" placeholder="请选择拥有者" filterable style="width: 100%">
             <el-option
-                v-for="item in ownerOptions.filter(x => x.ownerId !== -1)"
+                v-for="item in ownerOptionsAll"
                 :key="item.ownerId"
                 :label="item.ownerName"
                 :value="item.ownerId"
@@ -570,6 +570,7 @@ const title = ref("")
 const dateRange = ref([])
 const updateDateRange = ref([])
 const ownerOptions = ref([])
+const ownerOptionsAll = ref([])
 const isExtractionMode = ref(false) // 标记：当前是否处于“提取结果查看”模式
 const allExtractedData = ref([])    // 缓存：存储提取回来的所有数据
 
@@ -773,7 +774,9 @@ function handleQuery() {
   getList()
 }
 
-
+/**
+ * 加载已经分配卡密的用户
+ */
 function loadOwnerOptions() {
   listOwnerOptions().then(res => {
     const list = res?.data ?? res?.rows ?? []
@@ -784,6 +787,19 @@ function loadOwnerOptions() {
   }).catch(err => {
     console.error("loadOwnerOptions error:", err)
     ownerOptions.value = [{ownerId: -1, ownerName: '未分配'}]
+  })
+}
+
+/**
+ * 加载全部的用户
+ * @return {*}
+ */
+function loadOwnerOptionsAll() {
+  return listOwnerOptions({ allFlag: true }).then(res => {
+    const list = res?.data ?? res?.rows ?? []
+    ownerOptionsAll.value = list
+  }).catch(() => {
+    ownerOptionsAll.value = []
   })
 }
 
@@ -827,16 +843,17 @@ function handleBatchUpdate() {
 /**
  * 批量分配卡密
  */
-function handleBatchAssignOwner() {
+async function handleBatchAssignOwner() {
   if (ids.value.length === 0) {
     proxy.$modal.msgError("请至少选择一条数据")
     return
   }
-  assignForm.value = {
-    ownUserId: null,
-    usageType: null,
-    force: false
-  }
+
+  assignForm.value = { ownUserId: null, usageType: null, force: false }
+
+  // 打开前加载全量用户（仅此处用 all=true）
+  await loadOwnerOptionsAll()
+
   assignOpen.value = true
 }
 

@@ -102,10 +102,11 @@ export function exportAndChangeStatus(query, newUsageType, newStatus,ids) {
 }
 
 // 查询礼品卡拥有者下拉列表
-export function listOwnerOptions() {
+export function listOwnerOptions(query) {
   return request({
     url: '/GiftCard/GiftCard/ownerOptions',
-    method: 'get'
+    method: 'get',
+    params: query
   })
 }
 
