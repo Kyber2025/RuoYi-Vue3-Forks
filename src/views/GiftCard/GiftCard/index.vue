@@ -204,9 +204,7 @@
     <el-table v-loading="loading" :data="GiftCardList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="发件人" align="center" prop="sender" />
       <el-table-column label="拥有者" align="center" prop="ownerUserName" />
-      <el-table-column label="主题" align="center" prop="subject" />
       <el-table-column label="类型" align="center" prop="giftType">
         <template #default="scope">
           <dict-tag :options="gift_type" :value="scope.row.giftType"/>
