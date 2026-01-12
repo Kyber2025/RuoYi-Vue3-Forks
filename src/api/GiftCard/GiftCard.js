@@ -117,3 +117,12 @@ export function batchAssignOwner(data) {
     data
   })
 }
+
+// 自动按数量+面值分配未分配卡
+export function batchAutoAssignOwner(data) {
+  return request({
+    url: '/GiftCard/GiftCard/batchAutoAssignOwner',
+    method: 'put',
+    data
+  })
+}

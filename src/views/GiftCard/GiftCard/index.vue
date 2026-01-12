@@ -133,6 +133,15 @@
           v-hasPermi="['GiftCard:GiftCard:edit']"
       >批量分配订单
       </el-button>
+
+      <el-button
+          type="primary"
+          plain
+          icon="User"
+          @click="handleOpenAutoAssign"
+          v-hasPermi="['GiftCard:GiftCard:edit']"
+      >自动分配卡密
+      </el-button>
     </el-col>
 
     <br>
@@ -450,6 +459,48 @@
       </template>
     </el-dialog>
 
+    <!-- 自动分配卡密 -->
+    <el-dialog title="自动分配卡密" v-model="autoAssignOpen" width="520px" append-to-body>
+      <el-form :model="autoAssignForm" label-width="110px">
+        <el-form-item label="分配给(拥有者)" required>
+          <el-select v-model="autoAssignForm.ownUserId" placeholder="请选择拥有者" filterable style="width: 100%">
+            <el-option
+                v-for="item in ownerOptionsAll"
+                :key="item.ownerId"
+                :label="item.ownerName"
+                :value="item.ownerId"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="使用类型" required>
+          <el-select v-model="autoAssignForm.usageType" placeholder="请选择使用类型" style="width: 100%">
+            <el-option
+                v-for="dict in ka_usage_type"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="单张面值" required>
+          <el-input v-model="autoAssignForm.amount" type="number" placeholder="例如：100"/>
+        </el-form-item>
+
+        <el-form-item label="分配数量" required>
+          <el-input v-model="autoAssignForm.quantity" type="number" placeholder="例如：10"/>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitAutoAssign">确 定</el-button>
+          <el-button @click="autoAssignOpen = false">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
     <!-- 限制卡查询 -->
     <el-dialog title="按数量提取可用卡" v-model="openNumSearch" width="450px" append-to-body>
       <el-form :model="numSearchForm" label-width="100px">
@@ -545,10 +596,22 @@
 
 <script setup name="GiftCard">
 import {
-  listGiftCard, getGiftCard, delGiftCard, addGiftCard, updateGiftCard, listOwnerOptions,
-  batchUpdateGiftCard, batchAssignOwner, importGiftCardStatus, searchByNum, searchByAmount, exportAndChangeStatus
+  listGiftCard,
+  getGiftCard,
+  delGiftCard,
+  addGiftCard,
+  updateGiftCard,
+  listOwnerOptions,
+  batchUpdateGiftCard,
+  batchAssignOwner,
+  batchAutoAssignOwner,
+  importGiftCardStatus,
+  searchByNum,
+  searchByAmount,
+  exportAndChangeStatus
 } from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
+import { ref, reactive, toRefs, getCurrentInstance } from "vue"
 
 const {proxy} = getCurrentInstance()
 const {ka_status, ka_usage_type, gift_type} = proxy.useDict(
@@ -795,7 +858,7 @@ function loadOwnerOptions() {
  * @return {*}
  */
 function loadOwnerOptionsAll() {
-  return listOwnerOptions({ allFlag: true }).then(res => {
+  return listOwnerOptions({allFlag: true}).then(res => {
     const list = res?.data ?? res?.rows ?? []
     ownerOptionsAll.value = list
   }).catch(() => {
@@ -826,6 +889,14 @@ const assignForm = ref({
   force: false
 })
 
+//自动分配卡密
+const autoAssignOpen = ref(false)
+const autoAssignForm = ref({
+  ownUserId: null,
+  usageType: null,
+  amount: null,
+  quantity: 1
+})
 
 /** 批量修改按钮操作 */
 function handleBatchUpdate() {
@@ -849,12 +920,31 @@ async function handleBatchAssignOwner() {
     return
   }
 
-  assignForm.value = { ownUserId: null, usageType: null, force: false }
+  assignForm.value = {ownUserId: null, usageType: null, force: false}
 
   // 打开前加载全量用户（仅此处用 all=true）
   await loadOwnerOptionsAll()
 
   assignOpen.value = true
+}
+
+/**
+ * 自动分配卡密
+ * @return {Promise<void>}
+ */
+async function handleOpenAutoAssign() {
+  autoAssignForm.value = {
+    ownUserId: null,
+    usageType: null,
+    amount: null,
+    quantity: 1
+  }
+
+  if (!ownerOptionsAll.value || ownerOptionsAll.value.length === 0) {
+    await loadOwnerOptionsAll()
+  }
+
+  autoAssignOpen.value = true
 }
 
 /**
@@ -1129,6 +1219,63 @@ function handleImport(param) {
     proxy.$modal.closeLoading()
   })
 }
+
+function submitAutoAssign() {
+  const f = autoAssignForm.value
+
+  // 基础校验
+  if (!f.ownUserId) return proxy.$modal.msgError("请选择拥有者")
+  if (!f.usageType) return proxy.$modal.msgError("请选择使用类型")
+  if (!f.amount || Number(f.amount) <= 0) return proxy.$modal.msgError("请输入正确的单张面值")
+  if (!f.quantity || Number(f.quantity) < 1) return proxy.$modal.msgError("请输入正确的分配数量")
+
+  const payload = {
+    ownUserId: f.ownUserId,
+    usageType: f.usageType,
+    amount: f.amount,              // BigDecimal 可传数字/字符串
+    quantity: Number(f.quantity)
+  }
+
+  proxy.$modal
+      .confirm(`确认按面值 ${payload.amount} 自动分配 ${payload.quantity} 张未分配卡密吗？`)
+      .then(() => {
+        proxy.$modal.loading("正在分配中...")
+        return batchAutoAssignOwner(payload)
+      })
+      .then((res) => {
+        proxy.$modal.closeLoading()
+
+        const data = res?.data ?? res
+        const assignedCount = Number(data?.assignedCount ?? 0)
+        const assignedTotalAmount = data?.assignedTotalAmount ?? 0
+        const requestedCount = Number(data?.requestedCount ?? payload.quantity)
+
+        // 0 张：没拿到卡（库存不足/条件不匹配）
+        if (assignedCount <= 0) {
+          proxy.$modal.msgWarning(`未分配到可用卡密（请求 ${requestedCount} 张，面值 ${payload.amount}）`)
+          return
+        }
+
+        // 部分分配
+        if (assignedCount < requestedCount) {
+          proxy.$modal.msgWarning(
+              `库存不足：请求 ${requestedCount} 张，仅成功分配 ${assignedCount} 张（总金额 ${assignedTotalAmount}）`
+          )
+        } else {
+          // 足量分配
+          proxy.$modal.msgSuccess(
+              `分配成功：${assignedCount} 张（总金额 ${assignedTotalAmount}）`
+          )
+        }
+
+        autoAssignOpen.value = false
+        getList()
+      })
+      .catch(() => {
+        proxy.$modal.closeLoading()
+      })
+}
+
 loadOwnerOptions()
 getList()
 </script>
