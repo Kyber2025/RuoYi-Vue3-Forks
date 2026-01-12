@@ -108,3 +108,11 @@ export function listOwnerOptions() {
     method: 'get'
   })
 }
+
+export function batchAssignOwner(data) {
+  return request({
+    url: '/GiftCard/GiftCard/batchAssignOwner',
+    method: 'put',
+    data
+  })
+}

@@ -1,6 +1,7 @@
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <template>
+<template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="90px" class="search-form">
+    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="90px"
+             class="search-form">
       <el-form-item label="类型" prop="giftType" class="search-auto-item">
         <el-select
             v-model="queryParams.giftType"
@@ -40,34 +41,34 @@
       </el-form-item>
       <el-form-item label="礼品卡代码" prop="code">
         <el-input
-          v-model="queryParams.code"
-          placeholder="请输入礼品卡代码"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.code"
+            placeholder="请输入礼品卡代码"
+            clearable
+            @keyup.enter="handleQuery"
         />
       </el-form-item>
       <el-form-item label="订单号" prop="orderNumber">
         <el-input
-          v-model="queryParams.orderNumber"
-          placeholder="请输入订单号"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.orderNumber"
+            placeholder="请输入订单号"
+            clearable
+            @keyup.enter="handleQuery"
         />
       </el-form-item>
       <el-form-item label="金额" prop="amount">
         <el-input
-          v-model="queryParams.amount"
-          placeholder="请输入金额"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.amount"
+            placeholder="请输入金额"
+            clearable
+            @keyup.enter="handleQuery"
         />
       </el-form-item>
       <el-form-item label="编号" prop="extraNumber">
         <el-input
-          v-model="queryParams.extraNumber"
-          placeholder="请输入编号"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.extraNumber"
+            placeholder="请输入编号"
+            clearable
+            @keyup.enter="handleQuery"
         />
       </el-form-item>
       <el-form-item label="使用类型" prop="usageType" class="search-auto-item">
@@ -122,15 +123,28 @@
       </el-form-item>
     </el-form>
 
+    <el-col :span="1.5">
+      <el-button
+          type="primary"
+          plain
+          icon="User"
+          :disabled="multiple"
+          @click="handleBatchAssignOwner"
+          v-hasPermi="['GiftCard:GiftCard:edit']"
+      >批量分配订单
+      </el-button>
+    </el-col>
+
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['GiftCard:GiftCard:add']"
-        >新增</el-button>
+            type="primary"
+            plain
+            icon="Plus"
+            @click="handleAdd"
+            v-hasPermi="['GiftCard:GiftCard:add']"
+        >新增
+        </el-button>
       </el-col>
 
       <el-col :span="1.5">
@@ -141,39 +155,43 @@
             :disabled="multiple"
             @click="handleBatchUpdate"
             v-hasPermi="['GiftCard:GiftCard:edit']"
-        >批量修改</el-button>
+        >批量修改
+        </el-button>
       </el-col>
 
       <el-col :span="1.5">
         <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['GiftCard:GiftCard:edit']"
-        >修改</el-button>
+            type="success"
+            plain
+            icon="Edit"
+            :disabled="single"
+            @click="handleUpdate"
+            v-hasPermi="['GiftCard:GiftCard:edit']"
+        >修改
+        </el-button>
       </el-col>
 
       <el-col :span="1.5">
         <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['GiftCard:GiftCard:remove']"
-        >删除</el-button>
+            type="danger"
+            plain
+            icon="Delete"
+            :disabled="multiple"
+            @click="handleDelete"
+            v-hasPermi="['GiftCard:GiftCard:remove']"
+        >删除
+        </el-button>
       </el-col>
 
       <el-col :span="1.5">
         <el-button
-          type="warning"
-          plain
-          icon="Download"
-          @click="handleExport"
-          v-hasPermi="['GiftCard:GiftCard:export']"
-        >导出</el-button>
+            type="warning"
+            plain
+            icon="Download"
+            @click="handleExport"
+            v-hasPermi="['GiftCard:GiftCard:export']"
+        >导出
+        </el-button>
       </el-col>
 
       <el-col :span="1.5">
@@ -195,7 +213,8 @@
             plain
             icon="Search"
             @click="handleOpenNumSearch"
-        >按数量提取</el-button>
+        >按数量提取
+        </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -203,7 +222,8 @@
             plain
             icon="Money"
             @click="handleOpenAmountSearch"
-        >按金额提取</el-button>
+        >按金额提取
+        </el-button>
       </el-col>
 
       <el-col :span="1.5" style="margin-left: auto;">
@@ -213,23 +233,24 @@
             icon="Download"
             @click="handleExportWithUpdate"
             v-hasPermi="['GiftCard:GiftCard:export']"
-        >导出并修改</el-button>
+        >导出并修改
+        </el-button>
       </el-col>
     </el-row>
 
     <el-table v-loading="loading" :data="GiftCardList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="发件人" align="center" prop="sender" />
-      <el-table-column label="拥有者" align="center" prop="ownerUserName" />
+      <el-table-column type="selection" width="55" align="center"/>
+      <el-table-column label="发件人" align="center" prop="sender"/>
+      <el-table-column label="拥有者" align="center" prop="ownerUserName"/>
       <el-table-column label="类型" align="center" prop="giftType">
         <template #default="scope">
           <dict-tag :options="gift_type" :value="scope.row.giftType"/>
         </template>
       </el-table-column>
-      <el-table-column label="时间" align="center" prop="dtStr" />
-      <el-table-column label="礼品卡代码" align="center" prop="code" />
-      <el-table-column label="订单号" align="center" prop="orderNumber" />
-      <el-table-column label="金额" align="center" prop="amount" />
+      <el-table-column label="时间" align="center" prop="dtStr"/>
+      <el-table-column label="礼品卡代码" align="center" prop="code"/>
+      <el-table-column label="订单号" align="center" prop="orderNumber"/>
+      <el-table-column label="金额" align="center" prop="amount"/>
       <el-table-column label="使用类型" align="center" prop="usageType">
         <template #default="scope">
           <dict-tag :options="ka_usage_type" :value="scope.row.usageType"/>
@@ -240,7 +261,7 @@
           <dict-tag :options="ka_status" :value="scope.row.status"/>
         </template>
       </el-table-column>
-      <el-table-column label="更新人" align="center" prop="updateUser" />
+      <el-table-column label="更新人" align="center" prop="updateUser"/>
       <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
@@ -253,55 +274,59 @@
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['GiftCard:GiftCard:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['GiftCard:GiftCard:remove']">删除</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+                     v-hasPermi="['GiftCard:GiftCard:edit']">修改
+          </el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)"
+                     v-hasPermi="['GiftCard:GiftCard:remove']">删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
     <!-- 左边显示总金额 -->
     <span>{{ amountSum }}</span>
     <pagination
-      v-show="total>0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      :page-sizes="[10, 20, 50, 100, 200]"
-      @pagination="handlePagination"
+        v-show="total>0"
+        :total="total"
+        v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize"
+        :page-sizes="[10, 20, 50, 100, 200]"
+        @pagination="handlePagination"
     />
 
     <!-- 添加或修改礼品卡对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="GiftCardRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="发件人" prop="sender">
-          <el-input v-model="form.sender" placeholder="请输入发件人" />
+          <el-input v-model="form.sender" placeholder="请输入发件人"/>
         </el-form-item>
         <el-form-item label="主题" prop="subject">
-          <el-input v-model="form.subject" placeholder="请输入主题" />
+          <el-input v-model="form.subject" placeholder="请输入主题"/>
         </el-form-item>
         <el-form-item label="类型" prop="giftType">
           <el-select v-model="form.giftType" placeholder="请选择类型">
             <el-option
-              v-for="dict in gift_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
+                v-for="dict in gift_type"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
             ></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="时间" prop="dtStr">
-          <el-input v-model="form.dtStr" placeholder="请输入时间" />
+          <el-input v-model="form.dtStr" placeholder="请输入时间"/>
         </el-form-item>
         <el-form-item label="礼品卡代码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入礼品卡代码" />
+          <el-input v-model="form.code" placeholder="请输入礼品卡代码"/>
         </el-form-item>
         <el-form-item label="订单号" prop="orderNumber">
-          <el-input v-model="form.orderNumber" placeholder="请输入订单号" />
+          <el-input v-model="form.orderNumber" placeholder="请输入订单号"/>
         </el-form-item>
         <el-form-item label="金额" prop="amount">
-          <el-input v-model="form.amount" placeholder="请输入金额" />
+          <el-input v-model="form.amount" placeholder="请输入金额"/>
         </el-form-item>
         <el-form-item label="编号" prop="extraNumber">
-          <el-input v-model="form.extraNumber" placeholder="请输入编号" />
+          <el-input v-model="form.extraNumber" placeholder="请输入编号"/>
         </el-form-item>
         <el-form-item label="使用类型" prop="usageType" class="search-narrow-item">
           <el-select
@@ -384,6 +409,45 @@
       </template>
     </el-dialog>
 
+    <!-- 批量分配拥有者/订单 -->
+    <el-dialog title="批量分配订单" v-model="assignOpen" width="500px" append-to-body>
+      <el-form :model="assignForm" label-width="110px">
+        <el-form-item label="分配给(拥有者)" required>
+          <el-select v-model="assignForm.ownUserId" placeholder="请选择拥有者" filterable style="width: 100%">
+            <el-option
+                v-for="item in ownerOptions.filter(x => x.ownerId !== -1)"
+                :key="item.ownerId"
+                :label="item.ownerName"
+                :value="item.ownerId"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="使用类型" required>
+          <el-select v-model="assignForm.usageType" placeholder="请选择使用类型" style="width: 100%">
+            <el-option
+                v-for="dict in ka_usage_type"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="强制覆盖">
+          <el-switch v-model="assignForm.force"/>
+          <span style="margin-left: 8px; color: #999;">开启后会覆盖已分配的卡</span>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitBatchAssignOwner">确 定</el-button>
+          <el-button @click="assignOpen = false">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
     <!-- 限制卡查询 -->
     <el-dialog title="按数量提取可用卡" v-model="openNumSearch" width="450px" append-to-body>
       <el-form :model="numSearchForm" label-width="100px">
@@ -398,10 +462,10 @@
           </el-select>
         </el-form-item>
         <el-form-item label="单张面值" required>
-          <el-input type="number" v-model="numSearchForm.amount" placeholder="例如: 100" />
+          <el-input type="number" v-model="numSearchForm.amount" placeholder="例如: 100"/>
         </el-form-item>
         <el-form-item label="提取数量" required>
-          <el-input type="number" v-model="numSearchForm.totalNum" placeholder="例如: 10" />
+          <el-input type="number" v-model="numSearchForm.totalNum" placeholder="例如: 10"/>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -423,10 +487,10 @@
           </el-select>
         </el-form-item>
         <el-form-item label="单张面值" required>
-          <el-input type="number" v-model="amountSearchForm.amount" placeholder="例如: 100" />
+          <el-input type="number" v-model="amountSearchForm.amount" placeholder="例如: 100"/>
         </el-form-item>
         <el-form-item label="目标总金额" required>
-          <el-input type="number" v-model="amountSearchForm.totalAmount" placeholder="例如: 3000 (必须能整除面值)" />
+          <el-input type="number" v-model="amountSearchForm.totalAmount" placeholder="例如: 3000 (必须能整除面值)"/>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -437,12 +501,15 @@
 
     <el-dialog title="导出并变更状态" v-model="exportUpdateOpen" width="500px" append-to-body>
       <div style="margin-bottom: 20px; color: #e6a23c;">
-        <el-icon><Warning /></el-icon>
+        <el-icon>
+          <Warning/>
+        </el-icon>
         注意：此操作将导出当前查询结果集中的所有数据，并将它们的状态统一修改为以下值。
       </div>
       <el-form :model="exportUpdateForm" label-width="100px">
         <el-form-item label="变更使用类型">
-          <el-select v-model="exportUpdateForm.newUsageType" placeholder="请选择(留空不修改)" clearable style="width: 100%">
+          <el-select v-model="exportUpdateForm.newUsageType" placeholder="请选择(留空不修改)" clearable
+                     style="width: 100%">
             <el-option
                 v-for="dict in ka_usage_type"
                 :key="dict.value"
@@ -452,7 +519,8 @@
           </el-select>
         </el-form-item>
         <el-form-item label="变更状态">
-          <el-select v-model="exportUpdateForm.newStatus" placeholder="请选择(留空不修改)" clearable style="width: 100%">
+          <el-select v-model="exportUpdateForm.newStatus" placeholder="请选择(留空不修改)" clearable
+                     style="width: 100%">
             <el-option
                 v-for="dict in ka_status"
                 :key="dict.value"
@@ -474,12 +542,14 @@
 </template>
 
 <script setup name="GiftCard">
-import { listGiftCard, getGiftCard, delGiftCard, addGiftCard, updateGiftCard,listOwnerOptions,
-  batchUpdateGiftCard, importGiftCardStatus, searchByNum, searchByAmount,exportAndChangeStatus } from "@/api/GiftCard/GiftCard"
+import {
+  listGiftCard, getGiftCard, delGiftCard, addGiftCard, updateGiftCard, listOwnerOptions,
+  batchUpdateGiftCard, batchAssignOwner, importGiftCardStatus, searchByNum, searchByAmount, exportAndChangeStatus
+} from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
 
-const { proxy } = getCurrentInstance()
-const { ka_status, ka_usage_type, gift_type } = proxy.useDict(
+const {proxy} = getCurrentInstance()
+const {ka_status, ka_usage_type, gift_type} = proxy.useDict(
     'ka_status',
     'ka_usage_type',
     'gift_type'
@@ -520,11 +590,10 @@ const data = reactive({
     beginUpdateTime: undefined,
     endUpdateTime: undefined
   },
-  rules: {
-  }
+  rules: {}
 })
 
-const { queryParams, form, rules } = toRefs(data)
+const {queryParams, form, rules} = toRefs(data)
 
 const openNumSearch = ref(false)
 const openAmountSearch = ref(false)
@@ -552,12 +621,12 @@ const exportUpdateForm = ref({
 
 // 2. 打开对话框方法
 function handleOpenNumSearch() {
-  numSearchForm.value = { giftType: null, amount: null, totalNum: null }
+  numSearchForm.value = {giftType: null, amount: null, totalNum: null}
   openNumSearch.value = true
 }
 
 function handleOpenAmountSearch() {
-  amountSearchForm.value = { giftType: null, amount: null, totalAmount: null }
+  amountSearchForm.value = {giftType: null, amount: null, totalAmount: null}
   openAmountSearch.value = true
 }
 
@@ -633,7 +702,7 @@ function showResult(list) {
 /** * 统一的分页处理入口
  * 根据当前模式，决定是“查库”还是“查本地数组”
  */
-function handlePagination({ page, limit }) {
+function handlePagination({page, limit}) {
   if (isExtractionMode.value) {
     // --- 模式 A: 前端内存分页 (针对提取结果) ---
     // 计算切片的起始和结束位置
@@ -707,12 +776,12 @@ function loadOwnerOptions() {
   listOwnerOptions().then(res => {
     const list = res?.data ?? res?.rows ?? []
     ownerOptions.value = [
-      { ownerId: -1, ownerName: '未分配' },
+      {ownerId: -1, ownerName: '未分配'},
       ...list
     ]
   }).catch(err => {
     console.error("loadOwnerOptions error:", err)
-    ownerOptions.value = [{ ownerId: -1, ownerName: '未分配' }]
+    ownerOptions.value = [{ownerId: -1, ownerName: '未分配'}]
   })
 }
 
@@ -731,6 +800,15 @@ const batchForm = ref({
   status: null
 })
 
+//批量分配订单
+const assignOpen = ref(false)
+const assignForm = ref({
+  ownUserId: null,
+  usageType: null,
+  force: false
+})
+
+
 /** 批量修改按钮操作 */
 function handleBatchUpdate() {
   if (ids.value.length === 0) {
@@ -742,6 +820,62 @@ function handleBatchUpdate() {
     status: null
   }
   batchOpen.value = true
+}
+
+/**
+ * 批量分配卡密
+ */
+function handleBatchAssignOwner() {
+  if (ids.value.length === 0) {
+    proxy.$modal.msgError("请至少选择一条数据")
+    return
+  }
+  assignForm.value = {
+    ownUserId: null,
+    usageType: null,
+    force: false
+  }
+  assignOpen.value = true
+}
+
+/**
+ * 点击批量分配卡密
+ */
+function submitBatchAssignOwner() {
+  if (!assignForm.value.ownUserId) {
+    proxy.$modal.msgError("请选择拥有者")
+    return
+  }
+  if (!assignForm.value.usageType) {
+    proxy.$modal.msgError("请选择使用类型")
+    return
+  }
+
+  const payload = {
+    ids: ids.value,
+    ownUserId: assignForm.value.ownUserId,
+    usageType: assignForm.value.usageType,
+    force: assignForm.value.force
+  }
+
+  proxy.$modal
+      .confirm(`确认将选中的 ${ids.value.length} 张卡批量分配给该拥有者吗？`)
+      .then(() => {
+        proxy.$modal.loading("正在分配中...")
+        return batchAssignOwner(payload)
+      })
+      .then((res) => {
+        proxy.$modal.closeLoading()
+        // 你后端返回：rows / requested / force / ownUserId
+        const rows = res?.rows ?? res?.data?.rows
+        const requested = res?.requested ?? res?.data?.requested
+        proxy.$modal.msgSuccess(res?.msg || `分配完成：成功 ${rows ?? '-'} / 请求 ${requested ?? ids.value.length}`)
+        assignOpen.value = false
+        getList()
+      })
+      .catch(() => {
+        proxy.$modal.closeLoading()
+      })
 }
 
 /** 提交批量修改 */
@@ -825,12 +959,13 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value
-  proxy.$modal.confirm('是否确认删除礼品卡编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除礼品卡编号为"' + _ids + '"的数据项？').then(function () {
     return delGiftCard(_ids)
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
-  }).catch(() => {})
+  }).catch(() => {
+  })
 }
 
 /** 导出按钮操作 */
@@ -887,7 +1022,8 @@ function submitExportWithUpdate() {
   if (!newUsageType && (newStatus === null || newStatus === '')) {
     proxy.$modal.confirm('您未选择任何变更项，将仅执行普通导出，是否继续？').then(() => {
       doRealExport();
-    }).catch(() => {});
+    }).catch(() => {
+    });
     return;
   }
 
@@ -906,7 +1042,8 @@ function submitExportWithUpdate() {
       `当前共有 ${dataCount} 条数据等待处理。\n\n确认要导出并修改这 ${dataCount} 条数据的状态吗？`
   ).then(() => {
     doRealExport();
-  }).catch(() => {});
+  }).catch(() => {
+  });
 }
 
 // 【新增导出并修改】执行真正的请求
