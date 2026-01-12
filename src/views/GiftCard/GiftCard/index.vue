@@ -63,14 +63,6 @@
             @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="编号" prop="extraNumber">
-        <el-input
-            v-model="queryParams.extraNumber"
-            placeholder="请输入编号"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
       <el-form-item label="使用类型" prop="usageType" class="search-auto-item">
         <el-select
             v-model="queryParams.usageType"
@@ -251,7 +243,6 @@
 
     <el-table v-loading="loading" :data="GiftCardList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center"/>
-      <el-table-column label="发件人" align="center" prop="sender"/>
       <el-table-column label="拥有者" align="center" prop="ownerUserName"/>
       <el-table-column label="类型" align="center" prop="giftType">
         <template #default="scope">
@@ -308,12 +299,6 @@
     <!-- 添加或修改礼品卡对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="GiftCardRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="发件人" prop="sender">
-          <el-input v-model="form.sender" placeholder="请输入发件人"/>
-        </el-form-item>
-        <el-form-item label="主题" prop="subject">
-          <el-input v-model="form.subject" placeholder="请输入主题"/>
-        </el-form-item>
         <el-form-item label="类型" prop="giftType">
           <el-select v-model="form.giftType" placeholder="请选择类型">
             <el-option
@@ -335,9 +320,6 @@
         </el-form-item>
         <el-form-item label="金额" prop="amount">
           <el-input v-model="form.amount" placeholder="请输入金额"/>
-        </el-form-item>
-        <el-form-item label="编号" prop="extraNumber">
-          <el-input v-model="form.extraNumber" placeholder="请输入编号"/>
         </el-form-item>
         <el-form-item label="使用类型" prop="usageType" class="search-narrow-item">
           <el-select
