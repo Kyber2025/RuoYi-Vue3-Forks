@@ -135,6 +135,8 @@
       </el-button>
     </el-col>
 
+    <br>
+
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button
@@ -226,7 +228,7 @@
         </el-button>
       </el-col>
 
-      <el-col :span="1.5" style="margin-left: auto;">
+      <el-col :span="1.5">
         <el-button
             type="warning"
             plain
