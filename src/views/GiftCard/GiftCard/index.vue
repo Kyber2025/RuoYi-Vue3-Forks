@@ -466,6 +466,17 @@
           </el-select>
         </el-form-item>
 
+        <el-form-item label="礼品卡类型" required>
+          <el-select v-model="autoAssignForm.giftType" placeholder="请选择类型" style="width: 100%">
+            <el-option
+                v-for="dict in gift_type"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+
         <el-form-item label="单张面值" required>
           <el-input v-model="autoAssignForm.amount" type="number" placeholder="例如：100"/>
         </el-form-item>
@@ -594,8 +605,12 @@ import {
 } from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
 import { ref, reactive, toRefs, getCurrentInstance } from "vue"
+import { saveAs } from "file-saver"
+import { ElMessageBox, ElMessage } from "element-plus"
 
-const {proxy} = getCurrentInstance()
+
+const instance = getCurrentInstance()
+const proxy = instance?.proxy
 const {ka_status, ka_usage_type, gift_type} = proxy.useDict(
     'ka_status',
     'ka_usage_type',
@@ -876,6 +891,7 @@ const autoAssignOpen = ref(false)
 const autoAssignForm = ref({
   ownUserId: null,
   usageType: null,
+  giftType: null,
   amount: null,
   quantity: 1
 })
@@ -918,6 +934,7 @@ async function handleOpenAutoAssign() {
   autoAssignForm.value = {
     ownUserId: null,
     usageType: null,
+    giftType: null,
     amount: null,
     quantity: 1
   }
@@ -1202,61 +1219,85 @@ function handleImport(param) {
   })
 }
 
-function submitAutoAssign() {
+async function submitAutoAssign() {
   const f = autoAssignForm.value
+  const $modal = proxy?.$modal // 可选：用于 loading
 
-  // 基础校验
-  if (!f.ownUserId) return proxy.$modal.msgError("请选择拥有者")
-  if (!f.usageType) return proxy.$modal.msgError("请选择使用类型")
-  if (!f.amount || Number(f.amount) <= 0) return proxy.$modal.msgError("请输入正确的单张面值")
-  if (!f.quantity || Number(f.quantity) < 1) return proxy.$modal.msgError("请输入正确的分配数量")
+  if (!f.ownUserId) return $modal?.msgError?.("请选择拥有者") || ElMessage.error("请选择拥有者")
+  if (!f.usageType) return $modal?.msgError?.("请选择使用类型") || ElMessage.error("请选择使用类型")
+  if (!f.giftType) return $modal?.msgError?.("请选择礼品卡类型") || ElMessage.error("请选择礼品卡类型")
+  if (!f.amount || Number(f.amount) <= 0) return $modal?.msgError?.("请输入正确的单张面值") || ElMessage.error("请输入正确的单张面值")
+  if (!f.quantity || Number(f.quantity) < 1) return $modal?.msgError?.("请输入正确的分配数量") || ElMessage.error("请输入正确的分配数量")
 
   const payload = {
     ownUserId: f.ownUserId,
     usageType: f.usageType,
-    amount: f.amount,              // BigDecimal 可传数字/字符串
+    giftType: f.giftType,
+    amount: f.amount,
     quantity: Number(f.quantity)
   }
 
-  proxy.$modal
-      .confirm(`确认按面值 ${payload.amount} 自动分配 ${payload.quantity} 张未分配卡密吗？`)
-      .then(() => {
-        proxy.$modal.loading("正在分配中...")
-        return batchAutoAssignOwner(payload)
-      })
-      .then((res) => {
-        proxy.$modal.closeLoading()
+  const giftTypeLabel = getDictLabel(gift_type?.value ?? gift_type, payload.giftType)
 
-        const data = res?.data ?? res
-        const assignedCount = Number(data?.assignedCount ?? 0)
-        const assignedTotalAmount = data?.assignedTotalAmount ?? 0
-        const requestedCount = Number(data?.requestedCount ?? payload.quantity)
+  const html = `
+    <div style="line-height:1.8">
+      <div><b>确认自动分配卡密？</b></div>
+      <br/>
+      <div>礼品卡类型：<b>${giftTypeLabel}</b></div>
+      <div>单张面值：<b>${payload.amount}</b></div>
+      <div>分配数量：<b>${payload.quantity}</b></div>
+      <br/>
+      <div style="color:#e6a23c">
+        ⚠ 将把「未分配」的卡密分配给该拥有者，此操作不可撤销
+      </div>
+    </div>
+  `
 
-        // 0 张：没拿到卡（库存不足/条件不匹配）
-        if (assignedCount <= 0) {
-          proxy.$modal.msgWarning(`未分配到可用卡密（请求 ${requestedCount} 张，面值 ${payload.amount}）`)
-          return
-        }
+  try {
+    await ElMessageBox.confirm(html, "系统提示", {
+      type: "warning",
+      dangerouslyUseHTMLString: true,
+      confirmButtonText: "确定",
+      cancelButtonText: "取消"
+    })
 
-        // 部分分配
-        if (assignedCount < requestedCount) {
-          proxy.$modal.msgWarning(
-              `库存不足：请求 ${requestedCount} 张，仅成功分配 ${assignedCount} 张（总金额 ${assignedTotalAmount}）`
-          )
-        } else {
-          // 足量分配
-          proxy.$modal.msgSuccess(
-              `分配成功：${assignedCount} 张（总金额 ${assignedTotalAmount}）`
-          )
-        }
+    $modal?.loading?.("正在分配中...")
 
-        autoAssignOpen.value = false
-        getList()
-      })
-      .catch(() => {
-        proxy.$modal.closeLoading()
-      })
+    const res = await batchAutoAssignOwner(payload)
+
+    const data = res?.data ?? res ?? {}
+    const assignedCount = Number(data.assignedCount ?? 0)
+    const assignedTotalAmount = data.assignedTotalAmount ?? 0
+
+    if (assignedCount <= 0) {
+      ElMessage.warning(data.msg || "库存不足或无可分配卡密")
+      return
+    }
+
+    ElMessage.success(`分配成功：${assignedCount} 张（总金额 ${assignedTotalAmount}）`)
+    autoAssignOpen.value = false
+    getList()
+  } catch (e) {
+    // 取消 或 请求异常 都会进来
+  } finally {
+    $modal?.closeLoading?.()
+  }
 }
+
+
+function getDictLabel(dictOptions, value) {
+  if (value === null || value === undefined || value === '') return ''
+
+  const arr =
+      Array.isArray(dictOptions) ? dictOptions :
+          Array.isArray(dictOptions?.value) ? dictOptions.value :
+              Array.isArray(dictOptions?.data) ? dictOptions.data :
+                  []
+
+  const item = arr.find(d => String(d.value) === String(value))
+  return item?.label ?? String(value)
+}
+
 
 loadOwnerOptions()
 getList()
