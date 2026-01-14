@@ -100,3 +100,29 @@ export function exportAndChangeStatus(query, newUsageType, newStatus,ids) {
     responseType: 'blob' // 必须设置，用于下载文件
   })
 }
+
+// 查询礼品卡拥有者下拉列表
+export function listOwnerOptions(query) {
+  return request({
+    url: '/GiftCard/GiftCard/ownerOptions',
+    method: 'get',
+    params: query
+  })
+}
+
+export function batchAssignOwner(data) {
+  return request({
+    url: '/GiftCard/GiftCard/batchAssignOwner',
+    method: 'put',
+    data
+  })
+}
+
+// 自动按数量+面值分配未分配卡
+export function batchAutoAssignOwner(data) {
+  return request({
+    url: '/GiftCard/GiftCard/batchAutoAssignOwner',
+    method: 'put',
+    data
+  })
+}
