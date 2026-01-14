@@ -511,7 +511,18 @@
           <el-input type="number" v-model="numSearchForm.amount" placeholder="例如: 100"/>
         </el-form-item>
         <el-form-item label="提取数量" required>
-          <el-input type="number" v-model="numSearchForm.totalNum" placeholder="例如: 10"/>
+          <el-input type="number" v-model="numSearchForm.totalNum" placeholder="例如: 10" />
+        </el-form-item>
+        <el-form-item label="创建时间">
+          <el-date-picker
+              v-model="numSearchForm.dateRange"
+              type="daterange"
+              value-format="YYYY-MM-DD"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              style="width: 100%"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -536,7 +547,18 @@
           <el-input type="number" v-model="amountSearchForm.amount" placeholder="例如: 100"/>
         </el-form-item>
         <el-form-item label="目标总金额" required>
-          <el-input type="number" v-model="amountSearchForm.totalAmount" placeholder="例如: 3000 (必须能整除面值)"/>
+          <el-input type="number" v-model="amountSearchForm.totalAmount" placeholder="例如: 3000 (必须能整除面值)" />
+        </el-form-item>
+        <el-form-item label="创建时间">
+          <el-date-picker
+              v-model="amountSearchForm.dateRange"
+              type="daterange"
+              value-format="YYYY-MM-DD"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              style="width: 100%"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -667,13 +689,15 @@ const resultTotalAmount = ref(0)
 const numSearchForm = ref({
   giftType: null,
   amount: null,
-  totalNum: null
+  totalNum: null,
+  dateRange: []
 })
 
 const amountSearchForm = ref({
   giftType: null,
   amount: null,
-  totalAmount: null
+  totalAmount: null,
+  dateRange: []
 })
 
 const exportUpdateOpen = ref(false);
@@ -695,7 +719,12 @@ function handleOpenAmountSearch() {
 
 // 3. 提交按数量查询
 function submitNumSearch() {
-  const params = numSearchForm.value
+  const formDateRange = numSearchForm.value.dateRange || [];
+  const params = {
+    ...numSearchForm.value,
+    beginTime: formDateRange[0] || undefined,
+    endTime: formDateRange[1] || undefined
+  }
   if (!params.giftType || !params.amount || !params.totalNum) {
     proxy.$modal.msgError("请完整填写所有选项")
     return
@@ -715,7 +744,12 @@ function submitNumSearch() {
 
 // 4. 提交按金额查询
 function submitAmountSearch() {
-  const params = amountSearchForm.value
+  const formDateRange = amountSearchForm.value.dateRange || [];
+  const params = {
+    ...amountSearchForm.value,
+    beginTime: formDateRange[0] || undefined,
+    endTime: formDateRange[1] || undefined
+  }
   if (!params.giftType || !params.amount || !params.totalAmount) {
     proxy.$modal.msgError("请完整填写所有选项")
     return
