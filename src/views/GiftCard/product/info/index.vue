@@ -1,36 +1,38 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="80px">
       <el-form-item label="商品名称" prop="productName">
         <el-input
-          v-model="queryParams.productName"
-          placeholder="请输入商品名称"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.productName"
+            placeholder="请输入商品名称"
+            clearable
+            @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="拥有者" prop="userName">
+        <el-input
+            v-model="queryParams.userName"
+            placeholder="请输入用户名"
+            clearable
+            @keyup.enter="handleQuery"
         />
       </el-form-item>
       <el-form-item label="商品金额" prop="amount">
         <el-input
-          v-model="queryParams.amount"
-          placeholder="请输入商品金额"
-          clearable
-          @keyup.enter="handleQuery"
+            v-model="queryParams.amount"
+            placeholder="请输入商品金额"
+            clearable
+            @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="创建时间" prop="createdAt">
-        <el-date-picker clearable
-          v-model="queryParams.createdAt"
-          type="date"
-          value-format="YYYY-MM-DD"
-          placeholder="请选择创建时间">
-        </el-date-picker>
-      </el-form-item>
-      <el-form-item label="更新时间" prop="updatedAt">
-        <el-date-picker clearable
-          v-model="queryParams.updatedAt"
-          type="date"
-          value-format="YYYY-MM-DD"
-          placeholder="请选择更新时间">
+      <el-form-item label="创建时间">
+        <el-date-picker
+            v-model="dateRange"
+            type="daterange"
+            range-separator="-"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            value-format="YYYY-MM-DD">
         </el-date-picker>
       </el-form-item>
       <el-form-item>
@@ -57,18 +59,19 @@
 
     <el-table v-loading="loading" :data="infoList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键ID" align="center" prop="id" />
+      <el-table-column label="拥有者" align="center" prop="userName" />
       <el-table-column label="商品名称" align="center" prop="productName" />
       <el-table-column label="商品购买地址" align="center" prop="productUrl" />
       <el-table-column label="商品金额" align="center" prop="amount" />
-      <el-table-column label="创建时间" align="center" prop="createdAt" width="180">
+      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template #default="{ row }">
-          <span>{{ parseTime(row.createdAt, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(row.createTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="更新时间" align="center" prop="updatedAt" width="180">
+      <!-- ⭐ 修改：显示时分秒，字段名改为 updateTime -->
+      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
         <template #default="{ row }">
-          <span>{{ parseTime(row.updatedAt, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(row.updateTime) }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -96,24 +99,18 @@
         <el-form-item label="商品购买地址" prop="productUrl">
           <el-input v-model="form.productUrl" type="textarea" placeholder="请输入内容" />
         </el-form-item>
+        <el-form-item label="拥有者" prop="userId">
+          <el-select v-model="form.userId" placeholder="请选择拥有者" clearable style="width: 100%">
+            <el-option
+                v-for="user in userList"
+                :key="user.userId"
+                :label="user.userName"
+                :value="user.userId">
+            </el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="商品金额" prop="amount">
           <el-input v-model="form.amount" placeholder="请输入商品金额" />
-        </el-form-item>
-        <el-form-item label="创建时间" prop="createdAt">
-          <el-date-picker clearable
-            v-model="form.createdAt"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择创建时间">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="更新时间" prop="updatedAt">
-          <el-date-picker clearable
-            v-model="form.updatedAt"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择更新时间">
-          </el-date-picker>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -128,7 +125,8 @@
 
 <script>
 import { listInfo, getInfo, delInfo, addInfo, updateInfo } from "@/api/GiftCard/productInfo"
-import {parseTime} from "../../../../utils/ruoyi.js";
+import { listUser } from "@/api/system/user"
+import { parseTime } from "../../../../utils/ruoyi.js"
 import { Search, Refresh, Plus, Edit, Delete, Download } from '@element-plus/icons-vue'
 
 export default {
@@ -169,6 +167,10 @@ export default {
       total: 0,
       // 礼品卡可购买商品信息表格数据
       infoList: [],
+      // 用户列表
+      userList: [],
+      // 日期范围
+      dateRange: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -179,9 +181,8 @@ export default {
         pageSize: 10,
         productName: null,
         productUrl: null,
-        amount: null,
-        createdAt: null,
-        updatedAt: null
+        userName: null, // 用户名搜索
+        amount: null
       },
       // 表单参数
       form: {},
@@ -193,30 +194,40 @@ export default {
         productUrl: [
           { required: true, message: "商品购买地址不能为空", trigger: "blur" }
         ],
+        userId: [
+          { required: true, message: "请选择所有者", trigger: "change" }
+        ],
         amount: [
           { required: true, message: "商品金额不能为空", trigger: "blur" }
-        ],
-        createdAt: [
-          { required: true, message: "创建时间不能为空", trigger: "blur" }
-        ],
-        updatedAt: [
-          { required: true, message: "更新时间不能为空", trigger: "blur" }
         ]
       }
     }
   },
   created() {
     this.getList()
+    this.getUserList()
   },
   methods: {
     parseTime,
     /** 查询礼品卡可购买商品信息列表 */
     getList() {
       this.loading = true
+      this.queryParams.params = {}
+      if (this.dateRange != null && this.dateRange.length === 2) {
+        this.queryParams.params["beginTime"] = this.dateRange[0]
+        this.queryParams.params["endTime"] = this.dateRange[1]
+      }
       listInfo(this.queryParams).then(response => {
         this.infoList = response.rows
         this.total = response.total
         this.loading = false
+      })
+    },
+    /** 查询用户列表 */
+    getUserList() {
+      listUser({ pageNum: 1, pageSize: 1000 }).then(response => {
+        this.userList = response.rows
+        console.log('用户列表加载成功:', this.userList)
       })
     },
     // 取消按钮
@@ -230,9 +241,8 @@ export default {
         id: null,
         productName: null,
         productUrl: null,
-        amount: null,
-        createdAt: null,
-        updatedAt: null
+        userId: null,
+        amount: null
       }
       this.resetForm("form")
     },
@@ -243,13 +253,14 @@ export default {
     },
     /** 重置按钮操作 */
     resetQuery() {
+      this.dateRange = []
       this.resetForm("queryForm")
       this.handleQuery()
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.id)
-      this.single = selection.length!==1
+      this.single = selection.length !== 1
       this.multiple = !selection.length
     },
     /** 新增按钮操作 */
