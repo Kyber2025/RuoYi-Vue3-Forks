@@ -164,16 +164,13 @@
     <el-table v-loading="loading" :data="logList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="手机号" align="center" prop="phone">
-        <!-- ✅ 修改: slot-scope 改为 #default -->
         <template #default="scope">
-          <!-- ✅ 新增: 手机图标 -->
           <el-icon><Iphone /></el-icon> {{ scope.row.phone }}
         </template>
       </el-table-column>
       <el-table-column label="手机电量" align="center" prop="batteryLevel" />
       <el-table-column label="是否充电" align="center" prop="isCharging">
         <template #default="scope">
-          <!-- ✅ 新增: 充电状态标签和图标 -->
           <el-tag v-if="scope.row.isCharging == 1" type="success">
             <el-icon><Lightning /></el-icon> 充电中
           </el-tag>
