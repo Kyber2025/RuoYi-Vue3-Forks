@@ -1342,7 +1342,7 @@ getList()
 .search-form {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: center;
 }
 
 /* 搜索区域里的每个表单项之间留点间距 */
