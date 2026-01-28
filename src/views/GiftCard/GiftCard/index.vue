@@ -45,6 +45,7 @@
             placeholder="请输入礼品卡代码"
             clearable
             @keyup.enter="handleQuery"
+            style="width: 200px"
         />
       </el-form-item>
       <el-form-item label="订单号" prop="orderNumber">
@@ -53,6 +54,7 @@
             placeholder="请输入订单号"
             clearable
             @keyup.enter="handleQuery"
+            style="width: 200px"
         />
       </el-form-item>
       <el-form-item label="金额" prop="amount">
@@ -61,6 +63,7 @@
             placeholder="请输入金额"
             clearable
             @keyup.enter="handleQuery"
+            style="width: 200px"
         />
       </el-form-item>
       <el-form-item label="使用类型" prop="usageType" class="search-auto-item">
@@ -209,36 +212,6 @@
           <el-button type="primary" plain icon="Upload">导入更新</el-button>
         </el-upload>
       </el-col>
-
-      <el-col :span="1.5">
-        <el-button
-            type="primary"
-            plain
-            icon="Search"
-            @click="handleOpenNumSearch"
-        >按数量提取
-        </el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-            type="success"
-            plain
-            icon="Money"
-            @click="handleOpenAmountSearch"
-        >按金额提取
-        </el-button>
-      </el-col>
-
-      <el-col :span="1.5">
-        <el-button
-            type="warning"
-            plain
-            icon="Download"
-            @click="handleExportWithUpdate"
-            v-hasPermi="['GiftCard:GiftCard:export']"
-        >导出并修改
-        </el-button>
-      </el-col>
     </el-row>
 
     <el-table v-loading="loading" :data="GiftCardList" @selection-change="handleSelectionChange">
@@ -293,7 +266,7 @@
         v-model:page="queryParams.pageNum"
         v-model:limit="queryParams.pageSize"
         :page-sizes="[10, 20, 50, 100, 200]"
-        @pagination="handlePagination"
+        @pagination="getList"
     />
 
     <!-- 添加或修改礼品卡对话框 -->
@@ -494,118 +467,6 @@
       </template>
     </el-dialog>
 
-    <!-- 限制卡查询 -->
-    <el-dialog title="按数量提取可用卡" v-model="openNumSearch" width="450px" append-to-body>
-      <el-form :model="numSearchForm" label-width="100px">
-        <el-form-item label="礼品卡类型" required>
-          <el-select v-model="numSearchForm.giftType" placeholder="请选择类型" style="width: 100%">
-            <el-option
-                v-for="dict in gift_type"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="单张面值" required>
-          <el-input type="number" v-model="numSearchForm.amount" placeholder="例如: 100"/>
-        </el-form-item>
-        <el-form-item label="提取数量" required>
-          <el-input type="number" v-model="numSearchForm.totalNum" placeholder="例如: 10" />
-        </el-form-item>
-        <el-form-item label="创建时间">
-          <el-date-picker
-              v-model="numSearchForm.dateRange"
-              type="daterange"
-              value-format="YYYY-MM-DD"
-              range-separator="至"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-              style="width: 100%"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button type="primary" @click="submitNumSearch">查询提取</el-button>
-        <el-button @click="openNumSearch = false">关闭</el-button>
-      </template>
-    </el-dialog>
-
-    <el-dialog title="按金额提取可用卡" v-model="openAmountSearch" width="450px" append-to-body>
-      <el-form :model="amountSearchForm" label-width="100px">
-        <el-form-item label="礼品卡类型" required>
-          <el-select v-model="amountSearchForm.giftType" placeholder="请选择类型" style="width: 100%">
-            <el-option
-                v-for="dict in gift_type"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="单张面值" required>
-          <el-input type="number" v-model="amountSearchForm.amount" placeholder="例如: 100"/>
-        </el-form-item>
-        <el-form-item label="目标总金额" required>
-          <el-input type="number" v-model="amountSearchForm.totalAmount" placeholder="例如: 3000 (必须能整除面值)" />
-        </el-form-item>
-        <el-form-item label="创建时间">
-          <el-date-picker
-              v-model="amountSearchForm.dateRange"
-              type="daterange"
-              value-format="YYYY-MM-DD"
-              range-separator="至"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-              style="width: 100%"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button type="primary" @click="submitAmountSearch">查询提取</el-button>
-        <el-button @click="openAmountSearch = false">关闭</el-button>
-      </template>
-    </el-dialog>
-
-    <el-dialog title="导出并变更状态" v-model="exportUpdateOpen" width="500px" append-to-body>
-      <div style="margin-bottom: 20px; color: #e6a23c;">
-        <el-icon>
-          <Warning/>
-        </el-icon>
-        注意：此操作将导出当前查询结果集中的所有数据，并将它们的状态统一修改为以下值。
-      </div>
-      <el-form :model="exportUpdateForm" label-width="100px">
-        <el-form-item label="变更使用类型">
-          <el-select v-model="exportUpdateForm.newUsageType" placeholder="请选择(留空不修改)" clearable
-                     style="width: 100%">
-            <el-option
-                v-for="dict in ka_usage_type"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="变更状态">
-          <el-select v-model="exportUpdateForm.newStatus" placeholder="请选择(留空不修改)" clearable
-                     style="width: 100%">
-            <el-option
-                v-for="dict in ka_status"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
-            />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="submitExportWithUpdate">确 定 导 出</el-button>
-          <el-button @click="exportUpdateOpen = false">取 消</el-button>
-        </div>
-      </template>
-    </el-dialog>
-
   </div>
 </template>
 
@@ -620,14 +481,10 @@ import {
   batchUpdateGiftCard,
   batchAssignOwner,
   batchAutoAssignOwner,
-  importGiftCardStatus,
-  searchByNum,
-  searchByAmount,
-  exportAndChangeStatus
+  importGiftCardStatus
 } from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
 import { ref, reactive, toRefs, getCurrentInstance } from "vue"
-import { saveAs } from "file-saver"
 import { ElMessageBox, ElMessage } from "element-plus"
 
 
@@ -653,8 +510,6 @@ const dateRange = ref([])
 const updateDateRange = ref([])
 const ownerOptions = ref([])
 const ownerOptionsAll = ref([])
-const isExtractionMode = ref(false) // 标记：当前是否处于“提取结果查看”模式
-const allExtractedData = ref([])    // 缓存：存储提取回来的所有数据
 
 const data = reactive({
   form: {},
@@ -662,7 +517,6 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     giftType: null,
-    //dtStr: null,
     ownerId: null,
     code: null,
     orderNumber: null,
@@ -680,145 +534,9 @@ const data = reactive({
 
 const {queryParams, form, rules} = toRefs(data)
 
-const openNumSearch = ref(false)
-const openAmountSearch = ref(false)
-const openResult = ref(false)
-const resultList = ref([])
-const resultTotalAmount = ref(0)
-
-const numSearchForm = ref({
-  giftType: null,
-  amount: null,
-  totalNum: null,
-  dateRange: []
-})
-
-const amountSearchForm = ref({
-  giftType: null,
-  amount: null,
-  totalAmount: null,
-  dateRange: []
-})
-
-const exportUpdateOpen = ref(false);
-const exportUpdateForm = ref({
-  newUsageType: null,
-  newStatus: null
-});
-
-// 2. 打开对话框方法
-function handleOpenNumSearch() {
-  numSearchForm.value = {giftType: null, amount: null, totalNum: null}
-  openNumSearch.value = true
-}
-
-function handleOpenAmountSearch() {
-  amountSearchForm.value = {giftType: null, amount: null, totalAmount: null}
-  openAmountSearch.value = true
-}
-
-// 3. 提交按数量查询
-function submitNumSearch() {
-  const formDateRange = numSearchForm.value.dateRange || [];
-  const params = {
-    ...numSearchForm.value,
-    beginTime: formDateRange[0] || undefined,
-    endTime: formDateRange[1] || undefined
-  }
-  if (!params.giftType || !params.amount || !params.totalNum) {
-    proxy.$modal.msgError("请完整填写所有选项")
-    return
-  }
-
-  proxy.$modal.loading("正在提取中...")
-  searchByNum(params).then(res => {
-    proxy.$modal.closeLoading()
-    if (res.data) {
-      showResult(res.data)
-      openNumSearch.value = false
-    }
-  }).catch(() => {
-    proxy.$modal.closeLoading()
-  })
-}
-
-// 4. 提交按金额查询
-function submitAmountSearch() {
-  const formDateRange = amountSearchForm.value.dateRange || [];
-  const params = {
-    ...amountSearchForm.value,
-    beginTime: formDateRange[0] || undefined,
-    endTime: formDateRange[1] || undefined
-  }
-  if (!params.giftType || !params.amount || !params.totalAmount) {
-    proxy.$modal.msgError("请完整填写所有选项")
-    return
-  }
-
-  proxy.$modal.loading("正在提取中...")
-  searchByAmount(params).then(res => {
-    proxy.$modal.closeLoading()
-    if (res.data) {
-      showResult(res.data)
-      openAmountSearch.value = false
-    }
-  }).catch(() => {
-    proxy.$modal.closeLoading()
-  })
-}
-
-// 5. 显示结果通用方法 (修改版：直接渲染到主表格)
-function showResult(list) {
-  // 【新增】1. 开启提取模式
-  isExtractionMode.value = true
-
-  // 【新增】2. 把后端给的所有数据备份到本地
-  allExtractedData.value = list
-
-  // 3. 设置总条数（分页组件会根据这个计算有多少页）
-  total.value = list.length
-
-  // 4. 计算总金额
-  const sum = list.reduce((prev, curr) => prev + (curr.amount || 0), 0)
-  amountSum.value = "本次提取总金额: " + sum
-
-  // 【新增】5. 强制重置到第 1 页，防止用户之前翻到了第 5 页导致数据显示为空
-  queryParams.value.pageNum = 1
-
-  // 【新增】6. 手动触发一次切片，显示第 1 页数据
-  handlePagination({
-    page: queryParams.value.pageNum,
-    limit: queryParams.value.pageSize
-  })
-
-  // 7. 关闭弹窗并提示
-  openResult.value = false
-  proxy.$modal.msgSuccess("提取成功，结果已展示")
-}
-
-/** * 统一的分页处理入口
- * 根据当前模式，决定是“查库”还是“查本地数组”
- */
-function handlePagination({page, limit}) {
-  if (isExtractionMode.value) {
-    // --- 模式 A: 前端内存分页 (针对提取结果) ---
-    // 计算切片的起始和结束位置
-    const start = (page - 1) * limit
-    const end = page * limit
-    // 从缓存的全量数据中，切出一页给表格显示
-    GiftCardList.value = allExtractedData.value.slice(start, end)
-  } else {
-    // --- 模式 B: 后端数据库分页 (针对普通查询) ---
-    getList()
-  }
-}
-
 /** 查询礼品卡列表 */
 function getList() {
   loading.value = true
-
-  isExtractionMode.value = false
-  allExtractedData.value = []
 
   const query = {
     ...queryParams.value,
@@ -1120,105 +838,11 @@ function handleExport() {
     endUpdateTime: updateDateRange.value?.[1] || undefined
   }
 
-  // 1. 计算即将导出的数据量
-  let dataCount = 0;
-
-  if (isExtractionMode.value && allExtractedData.value.length > 0) {
-    // --- 提取模式 ---
-    // 数量 = 缓存数组的长度
-    dataCount = allExtractedData.value.length;
-    // 关键：把这些特定的 ID 传给后端，只导出这几条
-    query.ids = allExtractedData.value.map(item => item.id).join(',');
-  } else {
-    // --- 普通模式 ---
-    // 数量 = 列表总数 (total 是分页组件绑定的总条数变量)
-    dataCount = total.value;
-  }
-
-  // 2. 弹出确认窗口
-  proxy.$modal.confirm(`即将导出 ${dataCount} 条数据，是否继续？`)
+  proxy.$modal.confirm(`即将导出 ${total.value} 条数据，是否继续？`)
       .then(() => {
-        // 3. 用户确认后，执行下载
         proxy.download('GiftCard/GiftCard/export', query, `GiftCard_${new Date().getTime()}.xlsx`)
       })
       .catch(() => {
-        // 用户取消
-      });
-}
-
-// 【新增导出并修改】点击“导出并修改”按钮
-function handleExportWithUpdate() {
-  exportUpdateForm.value = {
-    newUsageType: null,
-    newStatus: null
-  };
-  exportUpdateOpen.value = true;
-}
-
-// 【新增导出并修改】提交导出并修改
-function submitExportWithUpdate() {
-  const newUsageType = exportUpdateForm.value.newUsageType;
-  const newStatus = exportUpdateForm.value.newStatus;
-
-  // 校验：防止误操作，至少要选一个，或者你可以允许都不选（仅导出）
-  if (!newUsageType && (newStatus === null || newStatus === '')) {
-    proxy.$modal.confirm('您未选择任何变更项，将仅执行普通导出，是否继续？').then(() => {
-      doRealExport();
-    }).catch(() => {
-    });
-    return;
-  }
-
-  // 计算即将操作的数据量
-  let dataCount = 0;
-  if (isExtractionMode.value) {
-    // 如果是提取模式，数量就是缓存数组的长度
-    dataCount = allExtractedData.value.length;
-  } else {
-    // 如果是普通模式，数量就是当前查询的总条数
-    dataCount = total.value;
-  }
-
-  // 弹出带数量的确认窗口
-  proxy.$modal.confirm(
-      `当前共有 ${dataCount} 条数据等待处理。\n\n确认要导出并修改这 ${dataCount} 条数据的状态吗？`
-  ).then(() => {
-    doRealExport();
-  }).catch(() => {
-  });
-}
-
-// 【新增导出并修改】执行真正的请求
-function doRealExport() {
-  const query = {
-    ...queryParams.value,
-    beginTime: dateRange.value?.[0] || undefined,
-    endTime: dateRange.value?.[1] || undefined,
-    beginUpdateTime: updateDateRange.value?.[0] || undefined,
-    endUpdateTime: updateDateRange.value?.[1] || undefined
-  };
-
-  let ids = null;
-  if (isExtractionMode.value && allExtractedData.value.length > 0) {
-    // 如果是提取模式，收集所有提取数据的ID，用逗号分隔或直接传数组（取决于axios配置，RuoYi通常支持逗号分隔）
-    // 这里生成逗号分隔字符串，后端 Long[] 可以自动解析
-    ids = allExtractedData.value.map(item => item.id).join(',');
-  }
-
-  proxy.$modal.loading("正在导出并更新数据，请稍候...");
-
-  exportAndChangeStatus(query, exportUpdateForm.value.newUsageType, exportUpdateForm.value.newStatus, ids)
-      .then((res) => {
-        // 处理文件下载
-        const blob = new Blob([res])
-        saveAs(blob, `GiftCard_Updated_${new Date().getTime()}.xlsx`)
-
-        proxy.$modal.closeLoading();
-        proxy.$modal.msgSuccess("操作成功");
-        exportUpdateOpen.value = false;
-      })
-      .catch(() => {
-        proxy.$modal.closeLoading();
       });
 }
 
@@ -1372,4 +996,3 @@ getList()
   flex: 0 0 90px;
 }
 </style>
-
