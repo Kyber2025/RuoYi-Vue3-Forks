@@ -189,7 +189,9 @@
             v-hasPermi="['GiftCard:GiftCard:add']"
         >新增
         </el-button>
+      </el-col>
 
+      <el-col :span="1.5">
         <el-button
             type="info"
             plain
@@ -199,7 +201,9 @@
             v-hasPermi="['GiftCard:GiftCard:edit']"
         >批量修改
         </el-button>
+      </el-col>
 
+      <el-col :span="1.5">
         <el-button
             type="success"
             plain
@@ -209,7 +213,9 @@
             v-hasPermi="['GiftCard:GiftCard:edit']"
         >修改
         </el-button>
+      </el-col>
 
+      <el-col :span="1.5">
         <el-button
             type="danger"
             plain
@@ -219,7 +225,9 @@
             v-hasPermi="['GiftCard:GiftCard:remove']"
         >删除
         </el-button>
+      </el-col>
 
+      <el-col :span="1.5">
         <el-button
             type="warning"
             plain
@@ -228,7 +236,9 @@
             v-hasPermi="['GiftCard:GiftCard:export']"
         >导出
         </el-button>
+      </el-col>
 
+      <el-col :span="1.5">
         <el-upload
             class="upload-demo"
             action=""
@@ -240,35 +250,9 @@
         >
           <el-button type="primary" plain icon="Upload">导入更新</el-button>
         </el-upload>
-
-        <el-button
-            type="primary"
-            plain
-            icon="Search"
-            @click="handleOpenNumSearch"
-        >按数量提取
-        </el-button>
-
-        <el-button
-            type="success"
-            plain
-            icon="Money"
-            @click="handleOpenAmountSearch"
-        >按金额提取
-        </el-button>
-
-        <el-button
-            type="warning"
-            plain
-            icon="Download"
-            @click="handleExportWithUpdate"
-            v-hasPermi="['GiftCard:GiftCard:export']"
-        >导出并修改
-        </el-button>
       </el-col>
     </el-row>
 
-    <!-- 数据表格 -->
     <el-table v-loading="loading" :data="GiftCardList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" fixed="left"/>
       <el-table-column label="拥有者" align="center" prop="ownerUserName" min-width="100"/>
@@ -606,7 +590,7 @@
         <el-icon>
           <Warning/>
         </el-icon>
-        注意：此操作将导出当前查询结果集中的所有数据,并将它们的状态统一修改为以下值。
+        注意：此操作将导出当前查询结果集中的所有数据，并将它们的状态统一修改为以下值。
       </div>
       <el-form :model="exportUpdateForm" label-width="100px">
         <el-form-item label="变更使用类型">
@@ -687,8 +671,8 @@ const dateRange = ref([])
 const updateDateRange = ref([])
 const ownerOptions = ref([])
 const ownerOptionsAll = ref([])
-const isExtractionMode = ref(false)
-const allExtractedData = ref([])
+const isExtractionMode = ref(false) // 标记：当前是否处于“提取结果查看”模式
+const allExtractedData = ref([])    // 缓存：存储提取回来的所有数据
 
 const data = reactive({
   form: {},
@@ -696,6 +680,7 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     giftType: null,
+    //dtStr: null,
     ownerId: null,
     code: null,
     orderNumber: null,
@@ -1011,8 +996,10 @@ function submitBatchUpdate() {
     return
   }
 
+  // 确认对话框
   proxy.$modal.confirm(`是否确认批量修改选中的 ${ids.value.length} 条礼品卡？`)
       .then(() => {
+        // 构造请求参数
         const data = {
           ids: ids.value,
           usageType: batchForm.value.usageType || null,
@@ -1054,6 +1041,7 @@ function handleUpdate(row) {
   })
 }
 
+/** 提交按钮 */
 function submitForm() {
   proxy.$refs["GiftCardRef"].validate(valid => {
     if (valid) {
@@ -1074,6 +1062,7 @@ function submitForm() {
   })
 }
 
+/** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value
   proxy.$modal.confirm('是否确认删除礼品卡编号为"' + _ids + '"的数据项？').then(function () {
@@ -1085,6 +1074,7 @@ function handleDelete(row) {
   })
 }
 
+/** 导出按钮操作 */
 function handleExport() {
   const query = {
     ...queryParams.value,
@@ -1176,6 +1166,7 @@ function doRealExport() {
       });
 }
 
+/** 导入更新状态（上传Excel） */
 function handleImport(param) {
   const file = param.file
   if (!file) {
@@ -1183,6 +1174,7 @@ function handleImport(param) {
     return
   }
 
+  // 检查文件类型
   const fileName = file.name
   const fileExt = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()
   if (!['xlsx', 'xls'].includes(fileExt)) {
