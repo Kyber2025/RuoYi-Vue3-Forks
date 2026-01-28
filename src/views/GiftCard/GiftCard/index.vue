@@ -1,145 +1,186 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="90px"
-             class="search-form">
-      <el-form-item label="类型" prop="giftType" class="search-auto-item">
-        <el-select
-            v-model="queryParams.giftType"
-            placeholder="请选择类型"
-            clearable
-            class="search-auto-select"
-        >
-          <el-option
-              v-for="dict in gift_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="创建时间" style="width: 308px">
-        <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            value-format="YYYY-MM-DD"
-            format="YYYY-MM-DD"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-        />
-      </el-form-item>
-      <el-form-item label="更新时间" style="width: 308px">
-        <el-date-picker
-            v-model="updateDateRange"
-            type="daterange"
-            value-format="YYYY-MM-DD"
-            format="YYYY-MM-DD"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-        />
-      </el-form-item>
-      <el-form-item label="礼品卡代码" prop="code">
-        <el-input
-            v-model="queryParams.code"
-            placeholder="请输入礼品卡代码"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="订单号" prop="orderNumber">
-        <el-input
-            v-model="queryParams.orderNumber"
-            placeholder="请输入订单号"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="金额" prop="amount">
-        <el-input
-            v-model="queryParams.amount"
-            placeholder="请输入金额"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="使用类型" prop="usageType" class="search-auto-item">
-        <el-select
-            v-model="queryParams.usageType"
-            placeholder="请选择使用类型"
-            clearable
-            class="search-auto-select"
-        >
-          <el-option
-              v-for="dict in ka_usage_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="状态" prop="status" class="search-auto-item">
-        <el-select
-            v-model="queryParams.status"
-            placeholder="请选择状态"
-            clearable
-            class="search-auto-select"
-        >
-          <el-option
-              v-for="dict in ka_status"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="拥有者" prop="ownerId" class="search-auto-item">
-        <el-select
-            v-model="queryParams.ownerId"
-            placeholder="请选择拥有者"
-            clearable
-            class="search-auto-select"
-        >
-          <el-option
-              v-for="item in ownerOptions"
-              :key="item.ownerId"
-              :label="item.ownerName"
-              :value="item.ownerId"
-          />
-        </el-select>
-      </el-form-item>
+    <!-- 搜索表单 -->
+    <el-form :model="queryParams" ref="queryRef" v-show="showSearch" label-width="90px"
+             class="search-form-clean">
+      <el-row :gutter="20">
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="类型" prop="giftType">
+            <el-select
+                v-model="queryParams.giftType"
+                placeholder="请选择类型"
+                clearable
+                style="width: 100%"
+            >
+              <el-option
+                  v-for="dict in gift_type"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
 
-      <el-form-item>
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-      </el-form-item>
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="使用类型" prop="usageType">
+            <el-select
+                v-model="queryParams.usageType"
+                placeholder="请选择使用类型"
+                clearable
+                style="width: 100%"
+            >
+              <el-option
+                  v-for="dict in ka_usage_type"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="状态" prop="status">
+            <el-select
+                v-model="queryParams.status"
+                placeholder="请选择状态"
+                clearable
+                style="width: 100%"
+            >
+              <el-option
+                  v-for="dict in ka_status"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="拥有者" prop="ownerId">
+            <el-select
+                v-model="queryParams.ownerId"
+                placeholder="请选择拥有者"
+                clearable
+                style="width: 100%"
+            >
+              <el-option
+                  v-for="item in ownerOptions"
+                  :key="item.ownerId"
+                  :label="item.ownerName"
+                  :value="item.ownerId"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="礼品卡代码" prop="code">
+            <el-input
+                v-model="queryParams.code"
+                placeholder="请输入礼品卡代码"
+                clearable
+                @keyup.enter="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="订单号" prop="orderNumber">
+            <el-input
+                v-model="queryParams.orderNumber"
+                placeholder="请输入订单号"
+                clearable
+                @keyup.enter="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="金额" prop="amount">
+            <el-input
+                v-model="queryParams.amount"
+                placeholder="请输入金额"
+                clearable
+                @keyup.enter="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="24" :md="12" :lg="8" :xl="8">
+          <el-form-item label="创建时间">
+            <el-date-picker
+                v-model="dateRange"
+                type="daterange"
+                value-format="YYYY-MM-DD"
+                format="YYYY-MM-DD"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="24" :md="12" :lg="8" :xl="8">
+          <el-form-item label="更新时间">
+            <el-date-picker
+                v-model="updateDateRange"
+                type="daterange"
+                value-format="YYYY-MM-DD"
+                format="YYYY-MM-DD"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <!-- 搜索按钮单独一行 -->
+      <el-row>
+        <el-col :span="24">
+          <div class="search-buttons">
+            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+          </div>
+        </el-col>
+      </el-row>
     </el-form>
 
-    <el-col :span="1.5">
-      <el-button
-          type="primary"
-          plain
-          icon="User"
-          :disabled="multiple"
-          @click="handleBatchAssignOwner"
-          v-hasPermi="['GiftCard:GiftCard:edit']"
-      >批量分配订单
-      </el-button>
+    <!-- 分割线 -->
+    <el-divider class="divider-margin" />
 
-      <el-button
-          type="primary"
-          plain
-          icon="User"
-          @click="handleOpenAutoAssign"
-          v-hasPermi="['GiftCard:GiftCard:edit']"
-      >自动分配卡密
-      </el-button>
-    </el-col>
-
-    <br>
-
+    <!-- 业务操作按钮区 -->
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
+      <el-col :span="24">
+        <el-button
+            type="primary"
+            plain
+            icon="User"
+            :disabled="multiple"
+            @click="handleBatchAssignOwner"
+            v-hasPermi="['GiftCard:GiftCard:edit']"
+        >批量分配订单
+        </el-button>
+
+        <el-button
+            type="primary"
+            plain
+            icon="User"
+            @click="handleOpenAutoAssign"
+            v-hasPermi="['GiftCard:GiftCard:edit']"
+        >自动分配卡密
+        </el-button>
+      </el-col>
+    </el-row>
+
+    <!-- CRUD操作按钮区 -->
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="24">
         <el-button
             type="primary"
             plain
@@ -148,9 +189,7 @@
             v-hasPermi="['GiftCard:GiftCard:add']"
         >新增
         </el-button>
-      </el-col>
 
-      <el-col :span="1.5">
         <el-button
             type="info"
             plain
@@ -160,9 +199,7 @@
             v-hasPermi="['GiftCard:GiftCard:edit']"
         >批量修改
         </el-button>
-      </el-col>
 
-      <el-col :span="1.5">
         <el-button
             type="success"
             plain
@@ -172,9 +209,7 @@
             v-hasPermi="['GiftCard:GiftCard:edit']"
         >修改
         </el-button>
-      </el-col>
 
-      <el-col :span="1.5">
         <el-button
             type="danger"
             plain
@@ -184,9 +219,7 @@
             v-hasPermi="['GiftCard:GiftCard:remove']"
         >删除
         </el-button>
-      </el-col>
 
-      <el-col :span="1.5">
         <el-button
             type="warning"
             plain
@@ -195,9 +228,7 @@
             v-hasPermi="['GiftCard:GiftCard:export']"
         >导出
         </el-button>
-      </el-col>
 
-      <el-col :span="1.5">
         <el-upload
             class="upload-demo"
             action=""
@@ -205,12 +236,11 @@
             :show-file-list="false"
             accept=".xlsx,.xls"
             v-hasPermi="['GiftCard:GiftCard:import']"
+            style="display: inline-block; margin-left: 10px;"
         >
           <el-button type="primary" plain icon="Upload">导入更新</el-button>
         </el-upload>
-      </el-col>
 
-      <el-col :span="1.5">
         <el-button
             type="primary"
             plain
@@ -218,8 +248,7 @@
             @click="handleOpenNumSearch"
         >按数量提取
         </el-button>
-      </el-col>
-      <el-col :span="1.5">
+
         <el-button
             type="success"
             plain
@@ -227,9 +256,7 @@
             @click="handleOpenAmountSearch"
         >按金额提取
         </el-button>
-      </el-col>
 
-      <el-col :span="1.5">
         <el-button
             type="warning"
             plain
@@ -241,40 +268,42 @@
       </el-col>
     </el-row>
 
+    <!-- 数据表格 -->
     <el-table v-loading="loading" :data="GiftCardList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center"/>
-      <el-table-column label="拥有者" align="center" prop="ownerUserName"/>
-      <el-table-column label="类型" align="center" prop="giftType">
+      <el-table-column type="selection" width="55" align="center" fixed="left"/>
+      <el-table-column label="拥有者" align="center" prop="ownerUserName" min-width="100"/>
+      <el-table-column label="类型" align="center" prop="giftType" min-width="100">
         <template #default="scope">
           <dict-tag :options="gift_type" :value="scope.row.giftType"/>
         </template>
       </el-table-column>
-      <el-table-column label="时间" align="center" prop="dtStr"/>
-      <el-table-column label="礼品卡代码" align="center" prop="code"/>
-      <el-table-column label="订单号" align="center" prop="orderNumber"/>
-      <el-table-column label="金额" align="center" prop="amount"/>
-      <el-table-column label="使用类型" align="center" prop="usageType">
+      <el-table-column label="时间" align="center" prop="dtStr" min-width="120"/>
+      <el-table-column label="礼品卡代码" align="center" prop="code" min-width="150"/>
+      <el-table-column label="订单号" align="center" prop="orderNumber" min-width="150"/>
+      <el-table-column label="金额" align="center" prop="amount" min-width="100"/>
+      <el-table-column label="使用类型" align="center" prop="usageType" min-width="100">
         <template #default="scope">
           <dict-tag :options="ka_usage_type" :value="scope.row.usageType"/>
         </template>
       </el-table-column>
-      <el-table-column label="状态" align="center" prop="status">
+      <el-table-column label="状态" align="center" prop="status" min-width="100">
         <template #default="scope">
           <dict-tag :options="ka_status" :value="scope.row.status"/>
         </template>
       </el-table-column>
-      <el-table-column label="更新人" align="center" prop="updateUser"/>
-      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
+      <el-table-column label="更新人" align="center" prop="updateUser" min-width="100"/>
+      <el-table-column label="更新时间" align="center" prop="updateTime" min-width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+      <el-table-column label="创建时间" align="center" prop="createTime" min-width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width"
+                       min-width="150" fixed="right">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
                      v-hasPermi="['GiftCard:GiftCard:edit']">修改
@@ -285,22 +314,27 @@
         </template>
       </el-table-column>
     </el-table>
-    <!-- 左边显示总金额 -->
-    <span>{{ amountSum }}</span>
-    <pagination
-        v-show="total>0"
-        :total="total"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        :page-sizes="[10, 20, 50, 100, 200]"
-        @pagination="handlePagination"
-    />
+
+    <!-- 统计信息和分页 -->
+    <div class="pagination-container">
+      <div class="amount-sum">
+        <span>{{ amountSum }}</span>
+      </div>
+      <pagination
+          v-show="total>0"
+          :total="total"
+          v-model:page="queryParams.pageNum"
+          v-model:limit="queryParams.pageSize"
+          :page-sizes="[10, 20, 50, 100, 200]"
+          @pagination="handlePagination"
+      />
+    </div>
 
     <!-- 添加或修改礼品卡对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="GiftCardRef" :model="form" :rules="rules" label-width="80px">
+      <el-form ref="GiftCardRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="类型" prop="giftType">
-          <el-select v-model="form.giftType" placeholder="请选择类型">
+          <el-select v-model="form.giftType" placeholder="请选择类型" style="width: 100%">
             <el-option
                 v-for="dict in gift_type"
                 :key="dict.value"
@@ -321,12 +355,12 @@
         <el-form-item label="金额" prop="amount">
           <el-input v-model="form.amount" placeholder="请输入金额"/>
         </el-form-item>
-        <el-form-item label="使用类型" prop="usageType" class="search-narrow-item">
+        <el-form-item label="使用类型" prop="usageType">
           <el-select
               v-model="form.usageType"
               placeholder="请选择使用类型"
               clearable
-              class="search-narrow-select"
+              style="width: 100%"
           >
             <el-option
                 v-for="dict in ka_usage_type"
@@ -336,12 +370,12 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="状态" prop="status" class="search-narrow-item">
+        <el-form-item label="状态" prop="status">
           <el-select
               v-model="form.status"
               placeholder="请选择状态"
               clearable
-              class="search-narrow-select"
+              style="width: 100%"
           >
             <el-option
                 v-for="dict in ka_status"
@@ -572,7 +606,7 @@
         <el-icon>
           <Warning/>
         </el-icon>
-        注意：此操作将导出当前查询结果集中的所有数据，并将它们的状态统一修改为以下值。
+        注意：此操作将导出当前查询结果集中的所有数据,并将它们的状态统一修改为以下值。
       </div>
       <el-form :model="exportUpdateForm" label-width="100px">
         <el-form-item label="变更使用类型">
@@ -653,8 +687,8 @@ const dateRange = ref([])
 const updateDateRange = ref([])
 const ownerOptions = ref([])
 const ownerOptionsAll = ref([])
-const isExtractionMode = ref(false) // 标记：当前是否处于“提取结果查看”模式
-const allExtractedData = ref([])    // 缓存：存储提取回来的所有数据
+const isExtractionMode = ref(false)
+const allExtractedData = ref([])
 
 const data = reactive({
   form: {},
@@ -662,7 +696,6 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     giftType: null,
-    //dtStr: null,
     ownerId: null,
     code: null,
     orderNumber: null,
@@ -706,7 +739,6 @@ const exportUpdateForm = ref({
   newStatus: null
 });
 
-// 2. 打开对话框方法
 function handleOpenNumSearch() {
   numSearchForm.value = {giftType: null, amount: null, totalNum: null}
   openNumSearch.value = true
@@ -717,7 +749,6 @@ function handleOpenAmountSearch() {
   openAmountSearch.value = true
 }
 
-// 3. 提交按数量查询
 function submitNumSearch() {
   const formDateRange = numSearchForm.value.dateRange || [];
   const params = {
@@ -742,7 +773,6 @@ function submitNumSearch() {
   })
 }
 
-// 4. 提交按金额查询
 function submitAmountSearch() {
   const formDateRange = amountSearchForm.value.dateRange || [];
   const params = {
@@ -767,53 +797,35 @@ function submitAmountSearch() {
   })
 }
 
-// 5. 显示结果通用方法 (修改版：直接渲染到主表格)
 function showResult(list) {
-  // 【新增】1. 开启提取模式
   isExtractionMode.value = true
-
-  // 【新增】2. 把后端给的所有数据备份到本地
   allExtractedData.value = list
-
-  // 3. 设置总条数（分页组件会根据这个计算有多少页）
   total.value = list.length
 
-  // 4. 计算总金额
   const sum = list.reduce((prev, curr) => prev + (curr.amount || 0), 0)
   amountSum.value = "本次提取总金额: " + sum
 
-  // 【新增】5. 强制重置到第 1 页，防止用户之前翻到了第 5 页导致数据显示为空
   queryParams.value.pageNum = 1
 
-  // 【新增】6. 手动触发一次切片，显示第 1 页数据
   handlePagination({
     page: queryParams.value.pageNum,
     limit: queryParams.value.pageSize
   })
 
-  // 7. 关闭弹窗并提示
   openResult.value = false
   proxy.$modal.msgSuccess("提取成功，结果已展示")
 }
 
-/** * 统一的分页处理入口
- * 根据当前模式，决定是“查库”还是“查本地数组”
- */
 function handlePagination({page, limit}) {
   if (isExtractionMode.value) {
-    // --- 模式 A: 前端内存分页 (针对提取结果) ---
-    // 计算切片的起始和结束位置
     const start = (page - 1) * limit
     const end = page * limit
-    // 从缓存的全量数据中，切出一页给表格显示
     GiftCardList.value = allExtractedData.value.slice(start, end)
   } else {
-    // --- 模式 B: 后端数据库分页 (针对普通查询) ---
     getList()
   }
 }
 
-/** 查询礼品卡列表 */
 function getList() {
   loading.value = true
 
@@ -837,13 +849,11 @@ function getList() {
   })
 }
 
-// 取消按钮
 function cancel() {
   open.value = false
   reset()
 }
 
-// 表单重置
 function reset() {
   form.value = {
     id: null,
@@ -862,15 +872,11 @@ function reset() {
   proxy.resetForm("GiftCardRef")
 }
 
-/** 搜索按钮操作 */
 function handleQuery() {
   queryParams.value.pageNum = 1
   getList()
 }
 
-/**
- * 加载已经分配卡密的用户
- */
 function loadOwnerOptions() {
   listOwnerOptions().then(res => {
     const list = res?.data ?? res?.rows ?? []
@@ -884,10 +890,6 @@ function loadOwnerOptions() {
   })
 }
 
-/**
- * 加载全部的用户
- * @return {*}
- */
 function loadOwnerOptionsAll() {
   return listOwnerOptions({allFlag: true}).then(res => {
     const list = res?.data ?? res?.rows ?? []
@@ -897,7 +899,6 @@ function loadOwnerOptionsAll() {
   })
 }
 
-/** 重置按钮操作 */
 function resetQuery() {
   dateRange.value = []
   updateDateRange.value = []
@@ -905,14 +906,12 @@ function resetQuery() {
   handleQuery()
 }
 
-// 新增：批量修改相关
 const batchOpen = ref(false)
 const batchForm = ref({
   usageType: null,
   status: null
 })
 
-//批量分配订单
 const assignOpen = ref(false)
 const assignForm = ref({
   ownUserId: null,
@@ -920,7 +919,6 @@ const assignForm = ref({
   force: false
 })
 
-//自动分配卡密
 const autoAssignOpen = ref(false)
 const autoAssignForm = ref({
   ownUserId: null,
@@ -930,7 +928,6 @@ const autoAssignForm = ref({
   quantity: 1
 })
 
-/** 批量修改按钮操作 */
 function handleBatchUpdate() {
   if (ids.value.length === 0) {
     proxy.$modal.msgError("请至少选择一条数据")
@@ -943,9 +940,6 @@ function handleBatchUpdate() {
   batchOpen.value = true
 }
 
-/**
- * 批量分配卡密
- */
 async function handleBatchAssignOwner() {
   if (ids.value.length === 0) {
     proxy.$modal.msgError("请至少选择一条数据")
@@ -954,16 +948,11 @@ async function handleBatchAssignOwner() {
 
   assignForm.value = {ownUserId: null, usageType: null, force: false}
 
-  // 打开前加载全量用户（仅此处用 all=true）
   await loadOwnerOptionsAll()
 
   assignOpen.value = true
 }
 
-/**
- * 自动分配卡密
- * @return {Promise<void>}
- */
 async function handleOpenAutoAssign() {
   autoAssignForm.value = {
     ownUserId: null,
@@ -980,9 +969,6 @@ async function handleOpenAutoAssign() {
   autoAssignOpen.value = true
 }
 
-/**
- * 点击批量分配卡密
- */
 function submitBatchAssignOwner() {
   if (!assignForm.value.ownUserId) {
     proxy.$modal.msgError("请选择拥有者")
@@ -1008,7 +994,6 @@ function submitBatchAssignOwner() {
       })
       .then((res) => {
         proxy.$modal.closeLoading()
-        // 你后端返回：rows / requested / force / ownUserId
         const rows = res?.rows ?? res?.data?.rows
         const requested = res?.requested ?? res?.data?.requested
         proxy.$modal.msgSuccess(res?.msg || `分配完成：成功 ${rows ?? '-'} / 请求 ${requested ?? ids.value.length}`)
@@ -1020,53 +1005,45 @@ function submitBatchAssignOwner() {
       })
 }
 
-/** 提交批量修改 */
 function submitBatchUpdate() {
-  // 校验：至少选择一项要修改的内容
   if (batchForm.value.usageType === null && batchForm.value.status === null) {
     proxy.$modal.msgWarning("请至少选择一项要修改的内容")
     return
   }
 
-  // 确认对话框
   proxy.$modal.confirm(`是否确认批量修改选中的 ${ids.value.length} 条礼品卡？`)
       .then(() => {
-        // 构造请求参数
         const data = {
           ids: ids.value,
-          usageType: batchForm.value.usageType || null,  // 空字符串或 undefined 转为 null
+          usageType: batchForm.value.usageType || null,
           status: batchForm.value.status !== null && batchForm.value.status !== ''
               ? Number(batchForm.value.status)
               : null
         }
 
-        // 调用我们刚才在 api 中定义的 batchUpdateGiftCard
         return batchUpdateGiftCard(data)
       })
       .then(() => {
         proxy.$modal.msgSuccess("批量修改成功")
         batchOpen.value = false
-        getList()  // 刷新表格
+        getList()
       })
       .catch(() => {
       })
 }
 
-// 多选框选中数据
 function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.id)
   single.value = selection.length !== 1
   multiple.value = !selection.length
 }
 
-/** 新增按钮操作 */
 function handleAdd() {
   reset()
   open.value = true
   title.value = "添加礼品卡"
 }
 
-/** 修改按钮操作 */
 function handleUpdate(row) {
   reset()
   const _id = row.id || ids.value
@@ -1077,7 +1054,6 @@ function handleUpdate(row) {
   })
 }
 
-/** 提交按钮 */
 function submitForm() {
   proxy.$refs["GiftCardRef"].validate(valid => {
     if (valid) {
@@ -1098,7 +1074,6 @@ function submitForm() {
   })
 }
 
-/** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value
   proxy.$modal.confirm('是否确认删除礼品卡编号为"' + _ids + '"的数据项？').then(function () {
@@ -1110,7 +1085,6 @@ function handleDelete(row) {
   })
 }
 
-/** 导出按钮操作 */
 function handleExport() {
   const query = {
     ...queryParams.value,
@@ -1120,33 +1094,23 @@ function handleExport() {
     endUpdateTime: updateDateRange.value?.[1] || undefined
   }
 
-  // 1. 计算即将导出的数据量
   let dataCount = 0;
 
   if (isExtractionMode.value && allExtractedData.value.length > 0) {
-    // --- 提取模式 ---
-    // 数量 = 缓存数组的长度
     dataCount = allExtractedData.value.length;
-    // 关键：把这些特定的 ID 传给后端，只导出这几条
     query.ids = allExtractedData.value.map(item => item.id).join(',');
   } else {
-    // --- 普通模式 ---
-    // 数量 = 列表总数 (total 是分页组件绑定的总条数变量)
     dataCount = total.value;
   }
 
-  // 2. 弹出确认窗口
   proxy.$modal.confirm(`即将导出 ${dataCount} 条数据，是否继续？`)
       .then(() => {
-        // 3. 用户确认后，执行下载
         proxy.download('GiftCard/GiftCard/export', query, `GiftCard_${new Date().getTime()}.xlsx`)
       })
       .catch(() => {
-        // 用户取消
       });
 }
 
-// 【新增导出并修改】点击“导出并修改”按钮
 function handleExportWithUpdate() {
   exportUpdateForm.value = {
     newUsageType: null,
@@ -1155,12 +1119,10 @@ function handleExportWithUpdate() {
   exportUpdateOpen.value = true;
 }
 
-// 【新增导出并修改】提交导出并修改
 function submitExportWithUpdate() {
   const newUsageType = exportUpdateForm.value.newUsageType;
   const newStatus = exportUpdateForm.value.newStatus;
 
-  // 校验：防止误操作，至少要选一个，或者你可以允许都不选（仅导出）
   if (!newUsageType && (newStatus === null || newStatus === '')) {
     proxy.$modal.confirm('您未选择任何变更项，将仅执行普通导出，是否继续？').then(() => {
       doRealExport();
@@ -1169,17 +1131,13 @@ function submitExportWithUpdate() {
     return;
   }
 
-  // 计算即将操作的数据量
   let dataCount = 0;
   if (isExtractionMode.value) {
-    // 如果是提取模式，数量就是缓存数组的长度
     dataCount = allExtractedData.value.length;
   } else {
-    // 如果是普通模式，数量就是当前查询的总条数
     dataCount = total.value;
   }
 
-  // 弹出带数量的确认窗口
   proxy.$modal.confirm(
       `当前共有 ${dataCount} 条数据等待处理。\n\n确认要导出并修改这 ${dataCount} 条数据的状态吗？`
   ).then(() => {
@@ -1188,7 +1146,6 @@ function submitExportWithUpdate() {
   });
 }
 
-// 【新增导出并修改】执行真正的请求
 function doRealExport() {
   const query = {
     ...queryParams.value,
@@ -1200,8 +1157,6 @@ function doRealExport() {
 
   let ids = null;
   if (isExtractionMode.value && allExtractedData.value.length > 0) {
-    // 如果是提取模式，收集所有提取数据的ID，用逗号分隔或直接传数组（取决于axios配置，RuoYi通常支持逗号分隔）
-    // 这里生成逗号分隔字符串，后端 Long[] 可以自动解析
     ids = allExtractedData.value.map(item => item.id).join(',');
   }
 
@@ -1209,7 +1164,6 @@ function doRealExport() {
 
   exportAndChangeStatus(query, exportUpdateForm.value.newUsageType, exportUpdateForm.value.newStatus, ids)
       .then((res) => {
-        // 处理文件下载
         const blob = new Blob([res])
         saveAs(blob, `GiftCard_Updated_${new Date().getTime()}.xlsx`)
 
@@ -1222,7 +1176,6 @@ function doRealExport() {
       });
 }
 
-/** 导入更新状态（上传Excel） */
 function handleImport(param) {
   const file = param.file
   if (!file) {
@@ -1230,7 +1183,6 @@ function handleImport(param) {
     return
   }
 
-  // 检查文件类型
   const fileName = file.name
   const fileExt = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()
   if (!['xlsx', 'xls'].includes(fileExt)) {
@@ -1245,7 +1197,7 @@ function handleImport(param) {
 
   importGiftCardStatus(formData).then(res => {
     proxy.$modal.msgSuccess(res.msg || "导入成功")
-    getList() // 刷新表格，显示最新状态
+    getList()
   }).catch(() => {
     proxy.$modal.msgError("导入失败，请检查文件格式或数据是否正确")
   }).finally(() => {
@@ -1255,7 +1207,7 @@ function handleImport(param) {
 
 async function submitAutoAssign() {
   const f = autoAssignForm.value
-  const $modal = proxy?.$modal // 可选：用于 loading
+  const $modal = proxy?.$modal
 
   if (!f.ownUserId) return $modal?.msgError?.("请选择拥有者") || ElMessage.error("请选择拥有者")
   if (!f.usageType) return $modal?.msgError?.("请选择使用类型") || ElMessage.error("请选择使用类型")
@@ -1312,7 +1264,6 @@ async function submitAutoAssign() {
     autoAssignOpen.value = false
     getList()
   } catch (e) {
-    // 取消 或 请求异常 都会进来
   } finally {
     $modal?.closeLoading?.()
   }
@@ -1338,38 +1289,92 @@ getList()
 </script>
 
 <style scoped>
-/* 搜索区域：允许自动换行 */
-.search-form {
+/* 搜索表单样式 - 简洁白色风格 */
+.search-form-clean {
+  padding: 10px 0;
+  margin-bottom: 0;
+}
+
+.search-form-clean :deep(.el-form-item__label) {
+  font-weight: 400;
+  color: #606266;
+}
+
+/* 搜索按钮区域 */
+.search-buttons {
+  text-align: center;
+  padding-top: 10px;
+}
+
+.search-buttons .el-button {
+  min-width: 100px;
+  margin: 0 8px;
+}
+
+/* 分割线样式 */
+.divider-margin {
+  margin: 15px 0;
+}
+
+/* 按钮行间距 - 增加按钮之间的间距 */
+.mb8 {
+  margin-bottom: 12px;
+}
+
+.mb8 .el-button {
+  margin-right: 10px;
+  margin-bottom: 8px;
+}
+
+/* 表格样式 */
+.el-table {
+  margin-top: 10px;
+}
+
+/* 分页容器 */
+.pagination-container {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: center;
+  margin-top: 20px;
+  padding: 10px 0;
 }
 
-/* 搜索区域里的每个表单项之间留点间距 */
-.search-form .el-form-item {
-  margin-right: 12px;
-  margin-bottom: 18px;
+.amount-sum {
+  font-size: 14px;
+  color: #409eff;
+  font-weight: 500;
 }
 
-/* 三个下拉：类型 / 使用类型 / 状态，自适应宽度 */
-.search-auto-item {
-  flex: 1 1 180px;
-  min-width: 150px;
-  max-width: 200px;
+/* 对话框样式优化 */
+.dialog-footer {
+  text-align: right;
 }
 
-/* 下拉框占满自己那一格 */
-.search-auto-select {
-  width: 100%;
+/* 上传组件内联显示 */
+.upload-demo {
+  display: inline-block;
+  vertical-align: middle;
 }
 
-.search-form .el-form-item__label {
-  white-space: nowrap;
-}
+/* 响应式优化 */
+@media screen and (max-width: 768px) {
+  .search-form-clean {
+    padding: 10px;
+  }
 
-.search-form :deep(.el-form-item__label) {
-  white-space: nowrap;
-  flex: 0 0 90px;
+  .pagination-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .amount-sum {
+    width: 100%;
+    text-align: center;
+  }
+
+  .mb8 .el-button {
+    margin-right: 5px;
+  }
 }
 </style>
-
