@@ -1,129 +1,153 @@
 <template>
   <div class="app-container">
+    <!-- 搜索表单 -->
     <el-form
-        class="search-form"
+        class="search-form-clean"
         :model="queryParams"
         ref="queryForm"
-        size="small"
-        :inline="true"
         v-show="showSearch"
-        label-width="68px"
+        label-width="80px"
     >
-      <el-form-item label="收件人名" prop="firstName">
-        <el-input
-            v-model="queryParams.firstName"
-            placeholder="请输入收件人名"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
+      <el-row :gutter="20">
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="收件人名" prop="firstName">
+            <el-input
+                v-model="queryParams.firstName"
+                placeholder="请输入收件人名"
+                clearable
+                @keyup.enter="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
 
-      <el-form-item label="收件人姓" prop="lastName">
-        <el-input
-            v-model="queryParams.lastName"
-            placeholder="请输入收件人姓"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="收件人姓" prop="lastName">
+            <el-input
+                v-model="queryParams.lastName"
+                placeholder="请输入收件人姓"
+                clearable
+                @keyup.enter="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
 
-      <el-form-item label="收件人地址" prop="addressLine" class="addr-item">
-        <el-input
-            v-model="queryParams.addressLine"
-            placeholder="请输入收件人地址"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="城市" prop="city">
+            <el-input v-model="queryParams.city" placeholder="请输入城市" clearable @keyup.enter="handleQuery" />
+          </el-form-item>
+        </el-col>
 
-      <el-form-item label="城市" prop="city">
-        <el-input v-model="queryParams.city" placeholder="请输入城市" clearable @keyup.enter="handleQuery" />
-      </el-form-item>
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="州/省" prop="state">
+            <el-input v-model="queryParams.state" placeholder="请输入州/省" clearable @keyup.enter="handleQuery" />
+          </el-form-item>
+        </el-col>
 
-      <el-form-item label="州/省" prop="state">
-        <el-input v-model="queryParams.state" placeholder="请输入州/省" clearable @keyup.enter="handleQuery" />
-      </el-form-item>
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="联系电话" prop="phone">
+            <el-input v-model="queryParams.phone" placeholder="请输入联系电话" clearable @keyup.enter="handleQuery" />
+          </el-form-item>
+        </el-col>
 
-      <el-form-item label="联系电话" prop="phone">
-        <el-input v-model="queryParams.phone" placeholder="请输入联系电话" clearable @keyup.enter="handleQuery" />
-      </el-form-item>
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="邮箱" prop="email">
+            <el-input v-model="queryParams.email" placeholder="请输入邮箱" clearable @keyup.enter="handleQuery" />
+          </el-form-item>
+        </el-col>
 
-      <el-form-item label="邮箱" prop="email">
-        <el-input v-model="queryParams.email" placeholder="请输入邮箱" clearable @keyup.enter="handleQuery" />
-      </el-form-item>
+        <el-col :xs="24" :sm="24" :md="12" :lg="8" :xl="8">
+          <el-form-item label="收件地址" prop="addressLine">
+            <el-input
+                v-model="queryParams.addressLine"
+                placeholder="请输入收件人地址"
+                clearable
+                @keyup.enter="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
 
-      <el-form-item label="创建时间" prop="createdAt">
-        <el-date-picker
-            v-model="queryParams.createdAt"
-            type="date"
-            value-format="YYYY-MM-DD"
-            clearable
-            placeholder="请选择创建时间"
-        />
-      </el-form-item>
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="创建时间" prop="createdAt">
+            <el-date-picker
+                v-model="queryParams.createdAt"
+                type="date"
+                value-format="YYYY-MM-DD"
+                clearable
+                placeholder="请选择创建时间"
+                style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
 
-      <el-form-item label="更新时间" prop="updatedAt">
-        <el-date-picker
-            v-model="queryParams.updatedAt"
-            type="date"
-            value-format="YYYY-MM-DD"
-            clearable
-            placeholder="请选择更新时间"
-        />
-      </el-form-item>
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="更新时间" prop="updatedAt">
+            <el-date-picker
+                v-model="queryParams.updatedAt"
+                type="date"
+                value-format="YYYY-MM-DD"
+                clearable
+                placeholder="请选择更新时间"
+                style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
+      </el-row>
 
-      <el-form-item>
-        <el-button type="primary" :icon="Search" size="small" @click="handleQuery">搜索</el-button>
-        <el-button :icon="Refresh" size="small" @click="resetQuery">重置</el-button>
-
-      </el-form-item>
+      <!-- 搜索按钮单独一行 -->
+      <el-row>
+        <el-col :span="24">
+          <div class="search-buttons">
+            <el-button type="primary" :icon="Search" @click="handleQuery">搜索</el-button>
+            <el-button :icon="Refresh" @click="resetQuery">重置</el-button>
+          </div>
+        </el-col>
+      </el-row>
     </el-form>
 
+    <!-- 分割线 -->
+    <el-divider class="divider-margin" />
+
+    <!-- 操作按钮区 -->
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button type="primary" plain :icon="Plus" size="small" @click="handleAdd" v-hasPermi="['customer:info:add']">
+      <el-col :span="24">
+        <el-button type="primary" plain :icon="Plus" @click="handleAdd" v-hasPermi="['customer:info:add']">
           新增
         </el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button type="success" plain :icon="Edit" size="small" :disabled="single" @click="handleUpdate" v-hasPermi="['customer:info:edit']">
+        <el-button type="success" plain :icon="Edit" :disabled="single" @click="handleUpdate" v-hasPermi="['customer:info:edit']">
           修改
         </el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button type="danger" plain :icon="Delete" size="small" :disabled="multiple" @click="handleDelete" v-hasPermi="['customer:info:remove']">
+        <el-button type="danger" plain :icon="Delete" :disabled="multiple" @click="handleDelete" v-hasPermi="['customer:info:remove']">
           删除
         </el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button type="warning" plain :icon="Download" size="small" @click="handleExport" v-hasPermi="['customer:info:export']">
+        <el-button type="warning" plain :icon="Download" @click="handleExport" v-hasPermi="['customer:info:export']">
           导出
         </el-button>
+        <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" style="float: right;" />
       </el-col>
-
-      <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" />
     </el-row>
 
+    <!-- 数据表格 -->
     <el-table v-loading="loading" :data="infoList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键ID" align="center" prop="id" />
-      <el-table-column label="收件人名" align="center" prop="firstName" />
-      <el-table-column label="收件人姓" align="center" prop="lastName" />
-      <el-table-column label="收件人地址" align="center" prop="addressLine" />
-      <el-table-column label="城市" align="center" prop="city" />
-      <el-table-column label="州/省" align="center" prop="state" />
-      <el-table-column label="邮编" align="center" prop="postCode" />
-      <el-table-column label="联系电话" align="center" prop="phone" />
-      <el-table-column label="邮箱" align="center" prop="email" />
+      <el-table-column label="主键ID" align="center" prop="id" min-width="80" />
+      <el-table-column label="收件人名" align="center" prop="firstName" min-width="100" />
+      <el-table-column label="收件人姓" align="center" prop="lastName" min-width="100" />
+      <el-table-column label="收件人地址" align="center" prop="addressLine" min-width="200" />
+      <el-table-column label="城市" align="center" prop="city" min-width="100" />
+      <el-table-column label="州/省" align="center" prop="state" min-width="100" />
+      <el-table-column label="邮编" align="center" prop="postCode" min-width="100" />
+      <el-table-column label="联系电话" align="center" prop="phone" min-width="120" />
+      <el-table-column label="邮箱" align="center" prop="email" min-width="150" />
 
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="150" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" size="small" @click="handleUpdate(row)" v-hasPermi="['customer:info:edit']">修改</el-button>
-          <el-button link type="danger" size="small" @click="handleDelete(row)" v-hasPermi="['customer:info:remove']">删除</el-button>
+          <el-button link type="primary" @click="handleUpdate(row)" v-hasPermi="['customer:info:edit']">修改</el-button>
+          <el-button link type="danger" @click="handleDelete(row)" v-hasPermi="['customer:info:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
 
+    <!-- 分页 -->
     <pagination
         v-show="total > 0"
         :total="total"
@@ -132,15 +156,16 @@
         @pagination="getList"
     />
 
+    <!-- 添加/修改对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="收件人名" prop="firstName">
           <el-input v-model="form.firstName" placeholder="请输入收件人名" />
         </el-form-item>
         <el-form-item label="收件人姓" prop="lastName">
           <el-input v-model="form.lastName" placeholder="请输入收件人姓" />
         </el-form-item>
-        <el-form-item label="收件人地址" prop="addressLine" class="addr-item">
+        <el-form-item label="收件人地址" prop="addressLine">
           <el-input v-model="form.addressLine" placeholder="请输入收件人地址" />
         </el-form-item>
         <el-form-item label="城市" prop="city">
@@ -180,14 +205,6 @@ const { proxy } = getCurrentInstance()
 const queryForm = ref()
 const formRef = ref()
 
-/*const stateOptions = [
-  { label: "Assam", value: "Assam", postCode: "781123" },
-  { label: "Ladakh", value: "Ladakh", postCode: "194201" },
-  { label: "Kerala", value: "Kerala", postCode: "673888" },
-  { label: "Goa", value: "Goa", postCode: "403002" },
-  { label: "Sikkim", value: "Sikkim", postCode: "737101" }
-]*/
-
 const state = reactive({
   loading: true,
   ids: [],
@@ -218,15 +235,6 @@ const state = reactive({
 
 const { loading, ids, single, multiple, showSearch, total, infoList, title, open, queryParams, form, rules } = toRefs(state)
 
-/*const validateStatePostCode = (rule, value, callback) => {
-  const st = form.value.state
-  const pc = form.value.postCode
-  const found = stateOptions.find(i => i.value === st)
-  if (!found) return callback(new Error("请选择州/省"))
-  if (pc !== found.postCode) return callback(new Error(`邮编必须为 ${found.postCode}`))
-  callback()
-}*/
-
 state.rules = {
   firstName: [{ required: true, message: "收件人名不能为空", trigger: "blur" }],
   lastName: [{ required: true, message: "收件人姓不能为空", trigger: "blur" }],
@@ -234,8 +242,7 @@ state.rules = {
   city: [{ required: true, message: "城市不能为空", trigger: "blur" }],
   state: [{ required: true, message: "州/省不能为空", trigger: "change" }],
   postCode: [
-    { required: true, message: "邮编不能为空", trigger: "blur" },
-    /*{ validator: validateStatePostCode, trigger: ["blur", "change"] }*/
+    { required: true, message: "邮编不能为空", trigger: "blur" }
   ],
   phone: [{ required: true, message: "联系电话不能为空", trigger: "blur" }],
   email: [
@@ -243,25 +250,6 @@ state.rules = {
     { type: "email", message: "邮箱格式不正确", trigger: ["blur", "change"] }
   ]
 }
-
-/*const syncPostCode = (target) => {
-  const found = stateOptions.find(i => i.value === target.state)
-  target.postCode = found ? found.postCode : null
-}*/
-
-/*watch(
-    () => queryParams.value.state,
-    (val) => {
-      const found = stateOptions.find(i => i.value === val)
-      queryParams.value.postCode = found ? found.postCode : null
-    }
-)
-
-watch(
-    () => form.value.state,
-    () => syncPostCode(form.value),
-    { immediate: true }
-)*/
 
 function getList() {
   loading.value = true
@@ -285,7 +273,7 @@ function reset() {
     phone: null,
     email: null
   }
-  formRef.value?.resetFields() // 如果你项目里有 resetForm 方法
+  formRef.value?.resetFields()
 }
 
 function handleQuery() {
@@ -363,38 +351,61 @@ getList()
 </script>
 
 <style scoped>
-/* 搜索区改成 grid，彻底解决挤来挤去的问题 */
-.search-form {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(220px, 1fr)); /* 一行4列 */
-  column-gap: 18px;
-  row-gap: 10px;
-  align-items: start;
+/* 搜索表单样式 - 简洁白色风格 */
+.search-form-clean {
+  padding: 10px 0;
+  margin-bottom: 0;
 }
 
-/* 覆盖 inline form-item 默认的 margin（不然 grid 不好看） */
-.search-form :deep(.el-form-item) {
-  margin-right: 0 !important;
-  margin-bottom: 0 !important;
+.search-form-clean :deep(.el-form-item__label) {
+  font-weight: 400;
+  color: #606266;
 }
 
-/* label 不换行，避免“收件人地址”被拆两行把下面顶下去 */
-.search-form :deep(.el-form-item__label) {
-  white-space: nowrap;
-  line-height: 32px;
+/* 搜索按钮区域 */
+.search-buttons {
+  text-align: center;
+  padding-top: 10px;
 }
 
-/* 让“收件人地址”占两列，基本就不会被挤到第二行 */
-.search-form :deep(.addr-item) {
-  grid-column: span 2;
+.search-buttons .el-button {
+  min-width: 100px;
+  margin: 0 8px;
 }
 
-/* 州/省下拉框变大：让 item 更宽 + select 占满 */
-/*.search-form :deep(.state-item) {
-  min-width: 260px;
+/* 分割线样式 */
+.divider-margin {
+  margin: 15px 0;
 }
-.search-form :deep(.state-item .el-select) {
-  width: 100%;
-}*/
 
+/* 按钮行间距 - 增加按钮之间的间距 */
+.mb8 {
+  margin-bottom: 12px;
+}
+
+.mb8 .el-button {
+  margin-right: 10px;
+  margin-bottom: 8px;
+}
+
+/* 表格样式 */
+.el-table {
+  margin-top: 10px;
+}
+
+/* 对话框样式优化 */
+.dialog-footer {
+  text-align: right;
+}
+
+/* 响应式优化 */
+@media screen and (max-width: 768px) {
+  .search-form-clean {
+    padding: 10px;
+  }
+
+  .mb8 .el-button {
+    margin-right: 5px;
+  }
+}
 </style>

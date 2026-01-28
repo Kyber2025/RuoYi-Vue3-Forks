@@ -1,141 +1,197 @@
 <template>
   <div class="app-container">
+    <!-- 搜索表单 -->
     <el-form
         :model="queryParams"
         ref="queryForm"
-        :inline="true"
         v-show="showSearch"
-        label-width="90px"
-        class="search-form"
+        label-width="110px"
+        class="search-form-clean"
     >
-      <el-form-item label="设备号码" prop="deviceNumber">
-        <el-input
-            v-model="queryParams.deviceNumber"
-            placeholder="请输入设备号码"
-            clearable
-            @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="钱包余额" prop="currentAmount">
-        <el-input
-            v-model="queryParams.currentAmount"
-            placeholder="请输入当前钱包余额"
-            clearable
-            @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="钱包上限" prop="rechargeLimit">
-        <el-input
-            v-model="queryParams.rechargeLimit"
-            placeholder="请输入充值金额上限"
-            clearable
-            @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="买书单价" prop="dailyBookUnitPrice">
-        <el-input v-model="queryParams.dailyBookUnitPrice" placeholder="请输入当天买书单价" clearable
-                  @keyup.enter.native="handleQuery"/>
-      </el-form-item>
+      <el-row :gutter="20">
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="设备号码" prop="deviceNumber">
+            <el-input
+                v-model="queryParams.deviceNumber"
+                placeholder="请输入设备号码"
+                clearable
+                @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
 
-      <el-form-item label="当日充值上限金额" prop="dailyRechargeLimit">
-        <el-input v-model="queryParams.dailyRechargeLimit" placeholder="请输入当日充值上限金额" clearable
-                  @keyup.enter.native="handleQuery"/>
-      </el-form-item>
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="钱包余额" prop="currentAmount">
+            <el-input
+                v-model="queryParams.currentAmount"
+                placeholder="请输入当前钱包余额"
+                clearable
+                @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
 
-      <el-form-item label="当日实际充值金额" prop="dailyRechargeAmount">
-        <el-input v-model="queryParams.dailyRechargeAmount" placeholder="请输入当天实际充值金额" clearable
-                  @keyup.enter.native="handleQuery"/>
-      </el-form-item>
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="钱包上限" prop="rechargeLimit">
+            <el-input
+                v-model="queryParams.rechargeLimit"
+                placeholder="请输入充值金额上限"
+                clearable
+                @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
 
-      <el-form-item label="当日买书上限金额" prop="dailyShoppingLimit">
-        <el-input v-model="queryParams.dailyShoppingLimit" placeholder="请输入当日买书上限金额" clearable
-                  @keyup.enter.native="handleQuery"/>
-      </el-form-item>
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="买书单价" prop="dailyBookUnitPrice">
+            <el-input
+                v-model="queryParams.dailyBookUnitPrice"
+                placeholder="请输入当天买书单价"
+                clearable
+                @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
 
-      <el-form-item label="当日买书实际余额" prop="dailyShoppingAmount">
-        <el-input v-model="queryParams.dailyShoppingAmount" placeholder="请输入当日买书实际余额" clearable
-                  @keyup.enter.native="handleQuery"/>
-      </el-form-item>
-      <el-form-item label="充值开关" prop="rechargeEnabled" style="width: 170px">
-        <el-select v-model="queryParams.rechargeEnabled" placeholder="全部" clearable style="width: 100%">
-          <el-option label="开启" :value="1"/>
-          <el-option label="关闭" :value="0"/>
-        </el-select>
-      </el-form-item>
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="当日充值上限" prop="dailyRechargeLimit">
+            <el-input
+                v-model="queryParams.dailyRechargeLimit"
+                placeholder="请输入当日充值上限金额"
+                clearable
+                @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
 
-      <el-form-item label="购物开关" prop="shoppingEnabled" style="width: 170px">
-        <el-select v-model="queryParams.shoppingEnabled" placeholder="全部" clearable style="width: 100%">
-          <el-option label="开启" :value="1"/>
-          <el-option label="关闭" :value="0"/>
-        </el-select>
-      </el-form-item>
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="当日实际充值" prop="dailyRechargeAmount">
+            <el-input
+                v-model="queryParams.dailyRechargeAmount"
+                placeholder="请输入当天实际充值金额"
+                clearable
+                @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
 
-      <el-form-item label="设备开关" prop="deviceEnabled" style="width: 170px">
-        <el-select v-model="queryParams.deviceEnabled" placeholder="全部" clearable style="width: 100%">
-          <el-option label="启用" :value="1"/>
-          <el-option label="停用" :value="0"/>
-        </el-select>
-      </el-form-item>
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="当日买书上限" prop="dailyShoppingLimit">
+            <el-input
+                v-model="queryParams.dailyShoppingLimit"
+                placeholder="请输入当日买书上限金额"
+                clearable
+                @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="当日买书金额" prop="dailyShoppingAmount">
+            <el-input
+                v-model="queryParams.dailyShoppingAmount"
+                placeholder="请输入当日买书实际金额"
+                clearable
+                @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="充值开关" prop="rechargeEnabled">
+            <el-select v-model="queryParams.rechargeEnabled" placeholder="全部" clearable style="width: 100%">
+              <el-option label="开启" :value="1"/>
+              <el-option label="关闭" :value="0"/>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="购物开关" prop="shoppingEnabled">
+            <el-select v-model="queryParams.shoppingEnabled" placeholder="全部" clearable style="width: 100%">
+              <el-option label="开启" :value="1"/>
+              <el-option label="关闭" :value="0"/>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="设备开关" prop="deviceEnabled">
+            <el-select v-model="queryParams.deviceEnabled" placeholder="全部" clearable style="width: 100%">
+              <el-option label="启用" :value="1"/>
+              <el-option label="停用" :value="0"/>
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <!-- 搜索按钮单独一行 -->
+      <el-row>
+        <el-col :span="24">
+          <div class="search-buttons">
+            <el-button type="primary" :icon="Search" @click="handleQuery">搜索</el-button>
+            <el-button :icon="Refresh" @click="resetQuery">重置</el-button>
+          </div>
+        </el-col>
+      </el-row>
     </el-form>
 
+    <!-- 分割线 -->
+    <el-divider class="divider-margin" />
+
+    <!-- 操作按钮区 -->
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
+      <el-col :span="24">
         <el-button
             type="primary"
-            plain :icon="Plus"
-            size="default"
+            plain
+            :icon="Plus"
             @click="handleAdd"
             v-hasPermi="['device:info:add']"
         >新增
         </el-button>
-      </el-col>
-      <el-col :span="1.5">
         <el-button
             type="success"
-            plain :icon="Edit"
-            size="default"
+            plain
+            :icon="Edit"
             :disabled="single"
             @click="handleUpdate"
             v-hasPermi="['device:info:edit']"
         >修改
         </el-button>
-      </el-col>
-      <el-col :span="1.5">
         <el-button
             type="danger"
-            plain :icon="Delete"
-            size="default"
+            plain
+            :icon="Delete"
             :disabled="multiple"
             @click="handleDelete"
             v-hasPermi="['device:info:remove']"
         >删除
         </el-button>
-      </el-col>
-      <el-col :span="1.5">
         <el-button
             type="warning"
-            plain :icon="Download"
-            size="default"
+            plain
+            :icon="Download"
             @click="handleExport"
             v-hasPermi="['device:info:export']"
         >导出
         </el-button>
+        <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" style="float: right;"></right-toolbar>
       </el-col>
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
+    <!-- 数据表格 -->
     <el-table v-loading="loading" :data="infoList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center"/>
-<!--      <el-table-column label="编号" align="center" prop="id"/>-->
-      <el-table-column label="设备号码" align="center" prop="deviceNumber"/>
-      <el-table-column label="钱包余额" align="center" prop="currentAmount"/>
-      <el-table-column label="钱包上限" align="center" prop="rechargeLimit"/>
-      <el-table-column label="买书单价" align="center" prop="dailyBookUnitPrice"/>
-      <el-table-column label="当日充值上限金额" align="center" prop="dailyRechargeLimit"/>
-      <el-table-column label="当日实际充值金额" align="center" prop="dailyRechargeAmount"/>
-      <el-table-column label="当日买书上限金额" align="center" prop="dailyShoppingLimit"/>
-      <el-table-column label="当日买书实际余额" align="center" prop="dailyShoppingAmount"/>
-      <el-table-column label="充值开关" align="center">
+      <el-table-column label="设备号码" align="center" prop="deviceNumber" min-width="120"/>
+      <el-table-column label="钱包余额" align="center" prop="currentAmount" min-width="100"/>
+      <el-table-column label="钱包上限" align="center" prop="rechargeLimit" min-width="100"/>
+      <el-table-column label="买书单价" align="center" prop="dailyBookUnitPrice" min-width="100"/>
+      <el-table-column label="当日充值上限金额" align="center" prop="dailyRechargeLimit" min-width="140"/>
+      <el-table-column label="当日实际充值金额" align="center" prop="dailyRechargeAmount" min-width="140"/>
+      <el-table-column label="当日买书上限金额" align="center" prop="dailyShoppingLimit" min-width="140"/>
+      <el-table-column label="当日买书实际余额" align="center" prop="dailyShoppingAmount" min-width="140"/>
+      <el-table-column label="充值开关" align="center" min-width="100">
         <template #default="{ row }">
           <el-switch
               v-model="row.rechargeEnabled"
@@ -147,7 +203,7 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="购物开关" align="center">
+      <el-table-column label="购物开关" align="center" min-width="100">
         <template #default="{ row }">
           <el-switch
               v-model="row.shoppingEnabled"
@@ -159,8 +215,7 @@
           />
         </template>
       </el-table-column>
-
-      <el-table-column label="设备开关" align="center">
+      <el-table-column label="设备开关" align="center" min-width="100">
         <template #default="{ row }">
           <el-switch
               v-model="row.deviceEnabled"
@@ -172,19 +227,19 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="150" fixed="right">
         <template #default="{ row }">
           <el-button
-              size="mini"
-              type="text"
+              link
+              type="primary"
               :icon="Edit"
               @click="handleUpdate(row)"
               v-hasPermi="['device:info:edit']"
           >修改
           </el-button>
           <el-button
-              size="mini"
-              type="text"
+              link
+              type="danger"
               icon="el-icon-delete"
               @click="handleDelete(row)"
               v-hasPermi="['device:info:remove']"
@@ -194,19 +249,18 @@
       </el-table-column>
     </el-table>
 
-    <div class="page-footer">
-      <pagination
-          v-show="total > 0"
-          :total="total"
-          v-model:page="queryParams.pageNum"
-          v-model:limit="queryParams.pageSize"
-          @pagination="getList"
-      />
-    </div>
+    <!-- 分页 -->
+    <pagination
+        v-show="total > 0"
+        :total="total"
+        v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize"
+        @pagination="getList"
+    />
 
     <!-- 添加或修改设备信息对话框 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-position="top">
+      <el-form ref="form" :model="form" :rules="rules" label-width="130px">
         <el-form-item label="设备号码" prop="deviceNumber">
           <el-input v-model="form.deviceNumber" placeholder="请输入设备号码"/>
         </el-form-item>
@@ -222,13 +276,13 @@
         <el-form-item label="当日买书上限金额" prop="dailyShoppingLimit">
           <el-input v-model="form.dailyShoppingLimit" placeholder="请输入当日买书上限金额"/>
         </el-form-item>
-        <el-form-item label="充值开关" prop="rechargeEnabled" class="inline-item">
+        <el-form-item label="充值开关" prop="rechargeEnabled">
           <el-switch v-model="form.rechargeEnabled" :active-value="1" :inactive-value="0"/>
         </el-form-item>
-        <el-form-item label="购物开关" prop="shoppingEnabled" class="inline-item">
+        <el-form-item label="购物开关" prop="shoppingEnabled">
           <el-switch v-model="form.shoppingEnabled" :active-value="1" :inactive-value="0"/>
         </el-form-item>
-        <el-form-item label="设备开关" prop="deviceEnabled" class="inline-item">
+        <el-form-item label="设备开关" prop="deviceEnabled">
           <el-switch v-model="form.deviceEnabled" :active-value="1" :inactive-value="0"/>
         </el-form-item>
       </el-form>
@@ -269,45 +323,31 @@ export default {
     }
     return {
       Search, Refresh, Plus, Edit, Delete, Download,
-      // 遮罩层
       loading: true,
-      // 选中数组
       ids: [],
-      // 非单个禁用
       single: true,
-      // 非多个禁用
       multiple: true,
-      // 显示搜索条件
       showSearch: true,
-      // 总条数
       total: 0,
-      // 设备信息表格数据
       infoList: [],
-      // 弹出层标题
       title: "",
-      // 是否显示弹出层
       open: false,
-      // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
         deviceNumber: null,
         currentAmount: null,
         rechargeLimit: null,
-
         dailyBookUnitPrice: null,
         dailyRechargeLimit: null,
         dailyRechargeAmount: null,
         dailyShoppingLimit: null,
         dailyShoppingAmount: null,
-
         rechargeEnabled: null,
         shoppingEnabled: null,
         deviceEnabled: null,
       },
-      // 表单参数
       form: {},
-      // 表单校验
       rules: {
         deviceNumber: [
           {required: true, message: "设备号码不能为空", trigger: "blur"}
@@ -319,20 +359,20 @@ export default {
           {required: true, message: "充值金额上限不能为空", trigger: "blur"}
         ],
         dailyBookUnitPrice: [
-            {required: true, message: "买书单价不能为空", trigger: "blur"},
-            {validator: validateBookPrice, trigger: ["blur", "change"]}
+          {required: true, message: "买书单价不能为空", trigger: "blur"},
+          {validator: validateBookPrice, trigger: ["blur", "change"]}
         ],
         dailyRechargeLimit: [
-            {required: true, message: "当天充值上限不能为空", trigger: "blur"},
+          {required: true, message: "当天充值上限不能为空", trigger: "blur"},
         ],
         dailyRechargeAmount: [
-            {required: true, message: "当日实际充值金额不能为空", trigger: "blur"},
+          {required: true, message: "当日实际充值金额不能为空", trigger: "blur"},
         ],
         dailyShoppingLimit: [
-            {required: true, message: "当日买书上限金额不能为空", trigger: "blur"}
+          {required: true, message: "当日买书上限金额不能为空", trigger: "blur"}
         ],
         dailyShoppingAmount: [
-            {required: true, message: "当日买书实际余额不能为空", trigger: "blur"}
+          {required: true, message: "当日买书实际余额不能为空", trigger: "blur"}
         ],
         rechargeEnabled: [
           {required: true, message: "充值开关不能为空", trigger: "blur"}
@@ -356,12 +396,8 @@ export default {
     this.getList()
   },
   methods: {
-
     /**
-     * 谢欢开关
-     * @param row
-     * @param field
-     * @param val
+     * 开关切换
      */
     handleSwitchChange(row, field, val) {
       const oldVal = val === 1 ? 0 : 1
@@ -371,7 +407,6 @@ export default {
       updateInfo(payload).then(() => {
         this.$modal.msgSuccess("已更新")
       }).catch(() => {
-        // 回滚 UI
         row[field] = oldVal
         this.$modal.msgError("更新失败，已回滚")
       })
@@ -395,25 +430,21 @@ export default {
         this.loading = false
       })
     },
-    // 取消按钮
     cancel() {
       this.open = false
       this.reset()
     },
-    // 表单重置
     reset() {
       this.form = {
         id: null,
         deviceNumber: null,
         currentAmount: null,
         rechargeLimit: null,
-
         dailyBookUnitPrice: null,
         dailyRechargeLimit: null,
         dailyRechargeAmount: null,
         dailyShoppingLimit: null,
         dailyShoppingAmount: null,
-
         rechargeEnabled: 0,
         shoppingEnabled: 0,
         deviceEnabled: 0,
@@ -432,7 +463,6 @@ export default {
       this.resetForm("queryForm")
       this.handleQuery()
     },
-    // 多选框选中数据
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.id)
       this.single = selection.length !== 1
@@ -474,7 +504,6 @@ export default {
         this.$modal.msgError("获取详情失败：" + (err.msg || err.message || "未知错误"))
       })
     },
-
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {
@@ -512,88 +541,66 @@ export default {
         ...this.queryParams
       }, `info_${new Date().getTime()}.xlsx`)
     }
-
   }
 }
 </script>
+
 <style scoped>
-/* 搜索区：用 Grid 排版，别动 el-form 的 display */
-.search-form {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); /* 每个筛选项最小宽度 */
-  column-gap: 28px;  /* 列间距 */
-  row-gap: 16px;     /* 行间距 */
-  padding-bottom: 14px; /* 和按钮区拉开 */
-  align-items: start;
+/* 搜索表单样式 - 简洁白色风格 */
+.search-form-clean {
+  padding: 10px 0;
+  margin-bottom: 0;
 }
 
-
-/* 每个表单项：顶部对齐，避免长label换行后被遮挡 */
-.search-form :deep(.el-form-item) {
-  margin: 0 !important;
-  align-items: flex-start;
+.search-form-clean :deep(.el-form-item__label) {
+  font-weight: 400;
+  color: #606266;
 }
 
-/* 统一搜索区输入框/下拉框高度 */
-.search-form :deep(.el-input__wrapper),
-.search-form :deep(.el-select__wrapper) {
-  height: 38px;
-  padding: 0 10px;
-  font-size: 14px;
+/* 搜索按钮区域 */
+.search-buttons {
+  text-align: center;
+  padding-top: 10px;
 }
 
-/* input 内部 */
-.search-form :deep(.el-input__inner) {
-  height: 38px;
-  line-height: 38px;
-  font-size: 14px;
+.search-buttons .el-button {
+  min-width: 100px;
+  margin: 0 8px;
 }
 
-/* select 选中区域垂直居中 */
-.search-form :deep(.el-select__selection) {
-  height: 38px;
-  display: flex;
-  align-items: center;
+/* 分割线样式 */
+.divider-margin {
+  margin: 15px 0;
 }
 
-
-/* 整个页面容器撑满高度 */
-.app-container {
-  min-height: calc(100vh - 84px); /* 84px 可按你顶部布局微调 */
-  display: flex;
-  flex-direction: column;
-}
-
-/* 表格区域占满剩余空间，把分页顶到最下面 */
-.app-container :deep(.el-table) {
-  flex: 1;
-}
-
-/* 分页固定在底部（不悬浮，只是贴底） */
-.page-footer {
-  margin-top: auto;
-  padding-top: 12px;
-}
-
-/* label允许换行，行高调小一点更好看 */
-.search-form :deep(.el-form-item__label) {
-  white-space: normal;
-  line-height: 18px;
-}
-
-/* 按钮行跟搜索区拉开点距离 */
+/* 按钮行间距 - 增加按钮之间的间距 */
 .mb8 {
+  margin-bottom: 12px;
+}
+
+.mb8 .el-button {
+  margin-right: 10px;
+  margin-bottom: 8px;
+}
+
+/* 表格样式 */
+.el-table {
   margin-top: 10px;
 }
 
-/* 关键：让每个搜索项别太窄，整体更松 */
-.search-form :deep(.el-form-item__content) {
-  min-width: 0;
+/* 对话框样式优化 */
+.dialog-footer {
+  text-align: right;
 }
 
-/* 仅开关项：恢复成 label 在左、控件在右的一行布局 */
-:deep(.inline-item) {
-  display: flex;
-  align-items: center;
+/* 响应式优化 */
+@media screen and (max-width: 768px) {
+  .search-form-clean {
+    padding: 10px;
+  }
+
+  .mb8 .el-button {
+    margin-right: 5px;
+  }
 }
 </style>

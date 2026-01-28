@@ -1,80 +1,99 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="80px">
-      <el-form-item label="商品名称" prop="productName">
-        <el-input
-            v-model="queryParams.productName"
-            placeholder="请输入商品名称"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="拥有者" prop="userName">
-        <el-input
-            v-model="queryParams.userName"
-            placeholder="请输入用户名"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="商品金额" prop="amount">
-        <el-input
-            v-model="queryParams.amount"
-            placeholder="请输入商品金额"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="创建时间">
-        <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="-"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD">
-        </el-date-picker>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" :icon="Search" size="small" @click="handleQuery">搜索</el-button>
-        <el-button :icon="Refresh" size="small" @click="resetQuery">重置</el-button>
-      </el-form-item>
+    <!-- 搜索表单 -->
+    <el-form :model="queryParams" ref="queryForm" v-show="showSearch" label-width="90px" class="search-form-clean">
+      <el-row :gutter="20">
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="商品名称" prop="productName">
+            <el-input
+                v-model="queryParams.productName"
+                placeholder="请输入商品名称"
+                clearable
+                @keyup.enter="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="拥有者" prop="userName">
+            <el-input
+                v-model="queryParams.userName"
+                placeholder="请输入用户名"
+                clearable
+                @keyup.enter="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="商品金额" prop="amount">
+            <el-input
+                v-model="queryParams.amount"
+                placeholder="请输入商品金额"
+                clearable
+                @keyup.enter="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="24" :md="12" :lg="8" :xl="8">
+          <el-form-item label="创建时间">
+            <el-date-picker
+                v-model="dateRange"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                value-format="YYYY-MM-DD"
+                style="width: 100%">
+            </el-date-picker>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <!-- 搜索按钮单独一行 -->
+      <el-row>
+        <el-col :span="24">
+          <div class="search-buttons">
+            <el-button type="primary" :icon="Search" @click="handleQuery">搜索</el-button>
+            <el-button :icon="Refresh" @click="resetQuery">重置</el-button>
+          </div>
+        </el-col>
+      </el-row>
     </el-form>
 
+    <!-- 分割线 -->
+    <el-divider class="divider-margin" />
+
+    <!-- 操作按钮区 -->
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button type="primary" plain :icon="Plus" size="small" @click="handleAdd" v-hasPermi="['products:info:add']">新增</el-button>
+      <el-col :span="24">
+        <el-button type="primary" plain :icon="Plus" @click="handleAdd" v-hasPermi="['products:info:add']">新增</el-button>
+        <el-button type="success" plain :icon="Edit" :disabled="single" @click="handleUpdate" v-hasPermi="['products:info:edit']">修改</el-button>
+        <el-button type="danger" plain :icon="Delete" :disabled="multiple" @click="handleDelete" v-hasPermi="['products:info:remove']">删除</el-button>
+        <el-button type="warning" plain :icon="Download" @click="handleExport" v-hasPermi="['products:info:export']">导出</el-button>
+        <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" style="float: right;" />
       </el-col>
-      <el-col :span="1.5">
-        <el-button type="success" plain :icon="Edit" size="small" :disabled="single" @click="handleUpdate" v-hasPermi="['products:info:edit']">修改</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button type="danger" plain :icon="Delete" size="small" :disabled="multiple" @click="handleDelete" v-hasPermi="['products:info:remove']">删除</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button type="warning" plain :icon="Download" size="small" @click="handleExport" v-hasPermi="['products:info:export']">导出</el-button>
-      </el-col>
-      <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" />
     </el-row>
 
+    <!-- 数据表格 -->
     <el-table v-loading="loading" :data="infoList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="拥有者" align="center" prop="userName" />
-      <el-table-column label="商品名称" align="center" prop="productName" />
-      <el-table-column label="商品购买地址" align="center" prop="productUrl" />
-      <el-table-column label="商品金额" align="center" prop="amount" />
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+      <el-table-column label="拥有者" align="center" prop="userName" min-width="100" />
+      <el-table-column label="商品名称" align="center" prop="productName" min-width="150" />
+      <el-table-column label="商品购买地址" align="center" prop="productUrl" min-width="200" />
+      <el-table-column label="商品金额" align="center" prop="amount" min-width="100" />
+      <el-table-column label="创建时间" align="center" prop="createTime" min-width="180">
         <template #default="{ row }">
           <span>{{ parseTime(row.createTime) }}</span>
         </template>
       </el-table-column>
-      <!-- ⭐ 修改：显示时分秒，字段名改为 updateTime -->
-      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
+      <el-table-column label="更新时间" align="center" prop="updateTime" min-width="180">
         <template #default="{ row }">
           <span>{{ parseTime(row.updateTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="150" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" :icon="Edit" @click="handleUpdate(row)" v-hasPermi="['products:info:edit']">修改</el-button>
           <el-button link type="danger" :icon="Delete" @click="handleDelete(row)" v-hasPermi="['products:info:remove']">删除</el-button>
@@ -82,6 +101,7 @@
       </el-table-column>
     </el-table>
 
+    <!-- 分页 -->
     <pagination
         v-show="total > 0"
         :total="total"
@@ -92,7 +112,7 @@
 
     <!-- 添加或修改礼品卡可购买商品信息对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+      <el-form ref="form" :model="form" :rules="rules" label-width="110px">
         <el-form-item label="商品名称" prop="productName">
           <el-input v-model="form.productName" placeholder="请输入商品名称" />
         </el-form-item>
@@ -153,40 +173,26 @@ export default {
   },
   data() {
     return {
-      // 遮罩层
       loading: true,
-      // 选中数组
       ids: [],
-      // 非单个禁用
       single: true,
-      // 非多个禁用
       multiple: true,
-      // 显示搜索条件
       showSearch: true,
-      // 总条数
       total: 0,
-      // 礼品卡可购买商品信息表格数据
       infoList: [],
-      // 用户列表
       userList: [],
-      // 日期范围
       dateRange: [],
-      // 弹出层标题
       title: "",
-      // 是否显示弹出层
       open: false,
-      // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
         productName: null,
         productUrl: null,
-        userName: null, // 用户名搜索
+        userName: null,
         amount: null
       },
-      // 表单参数
       form: {},
-      // 表单校验
       rules: {
         productName: [
           { required: true, message: "商品名称不能为空", trigger: "blur" }
@@ -230,12 +236,10 @@ export default {
         console.log('用户列表加载成功:', this.userList)
       })
     },
-    // 取消按钮
     cancel() {
       this.open = false
       this.reset()
     },
-    // 表单重置
     reset() {
       this.form = {
         id: null,
@@ -257,7 +261,6 @@ export default {
       this.resetForm("queryForm")
       this.handleQuery()
     },
-    // 多选框选中数据
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.id)
       this.single = selection.length !== 1
@@ -322,3 +325,63 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* 搜索表单样式 - 简洁白色风格 */
+.search-form-clean {
+  padding: 10px 0;
+  margin-bottom: 0;
+}
+
+.search-form-clean :deep(.el-form-item__label) {
+  font-weight: 400;
+  color: #606266;
+}
+
+/* 搜索按钮区域 */
+.search-buttons {
+  text-align: center;
+  padding-top: 10px;
+}
+
+.search-buttons .el-button {
+  min-width: 100px;
+  margin: 0 8px;
+}
+
+/* 分割线样式 */
+.divider-margin {
+  margin: 15px 0;
+}
+
+/* 按钮行间距 - 增加按钮之间的间距 */
+.mb8 {
+  margin-bottom: 12px;
+}
+
+.mb8 .el-button {
+  margin-right: 10px;
+  margin-bottom: 8px;
+}
+
+/* 表格样式 */
+.el-table {
+  margin-top: 10px;
+}
+
+/* 对话框样式优化 */
+.dialog-footer {
+  text-align: right;
+}
+
+/* 响应式优化 */
+@media screen and (max-width: 768px) {
+  .search-form-clean {
+    padding: 10px;
+  }
+
+  .mb8 .el-button {
+    margin-right: 5px;
+  }
+}
+</style>

@@ -1,175 +1,209 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryFormRef" size="default" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="手机号" prop="phone">
-        <el-input
-            v-model="queryParams.phone"
-            placeholder="请输入手机号"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-        <template #prefix>
-          <el-icon><Iphone /></el-icon>
-        </template>
-      </el-form-item>
-      <el-form-item label="手机电量" prop="batteryLevel">
-        <el-input
-            v-model="queryParams.batteryLevel"
-            placeholder="请输入手机电量 0-100"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="是否充电" prop="isCharging">
-        <el-select
-            v-model="queryParams.isCharging"
-            placeholder="请选择充电状态"
-            clearable
-            style="width: 180px"
-            @keyup.enter="handleQuery"
-        >
-          <el-option :value="1" label="充电中">
-            <div style="display: flex; align-items: center;">
-              <el-icon color="#67C23A" style="margin-right: 8px;"><Lightning /></el-icon>
-              <span>充电中</span>
-            </div>
-          </el-option>
-          <el-option :value="0" label="未充电">
-            <div style="display: flex; align-items: center;">
-              <el-icon color="#909399" style="margin-right: 8px;"><CircleClose /></el-icon>
-              <span>未充电</span>
-            </div>
-          </el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="设备型号" prop="deviceModel">
-        <el-input
-            v-model="queryParams.deviceModel"
-            placeholder="请输入设备型号"
-            clearable
-            @keyup.enter="handleQuery"
-        />
-        <template #prefix>
-          <el-icon><Cellphone /></el-icon>
-        </template>
-      </el-form-item>
-      <el-form-item label="系统版本" prop="osVersion">
-        <el-input
-            v-model="queryParams.osVersion"
-            placeholder="请输入系统版本"
-            clearable
-            @keyup.enter.="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="应用版本" prop="appVersion">
-        <el-input
-            v-model="queryParams.appVersion"
-            placeholder="请输入应用版本"
-            clearable
-            @keyup.enter.="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="IP地址" prop="ipAddress">
-        <el-input
-            v-model="queryParams.ipAddress"
-            placeholder="请输入IP地址"
-            clearable
-            @keyup.enter.="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="创建时间">
-        <el-date-picker
-            v-model="dateRangeCreatedAt"
-            type="datetimerange"
-            range-separator="-"
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            format="YYYY-MM-DD HH:mm:ss">
-        </el-date-picker>
-      </el-form-item>
-      <el-form-item label="更新时间">
-        <el-date-picker
-            v-model="dateRangeUpdatedAt"
-            type="datetimerange"
-            range-separator="-"
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            format="YYYY-MM-DD HH:mm:ss">
-        </el-date-picker>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" size="default" @click="handleQuery">
-          <el-icon><Search /></el-icon>
-          <span>搜索</span>
-        </el-button>
-        <el-button size="default" @click="resetQuery">
-          <el-icon><Refresh /></el-icon>
-          <span>重置</span>
-        </el-button>
-      </el-form-item>
+    <!-- 搜索表单 -->
+    <el-form :model="queryParams" ref="queryFormRef" v-show="showSearch" label-width="80px" class="search-form-clean">
+      <el-row :gutter="20">
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="手机号" prop="phone">
+            <el-input
+                v-model="queryParams.phone"
+                placeholder="请输入手机号"
+                clearable
+                @keyup.enter="handleQuery"
+            >
+              <template #prefix>
+                <el-icon><Iphone /></el-icon>
+              </template>
+            </el-input>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="手机电量" prop="batteryLevel">
+            <el-input
+                v-model="queryParams.batteryLevel"
+                placeholder="请输入手机电量 0-100"
+                clearable
+                @keyup.enter="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="是否充电" prop="isCharging">
+            <el-select
+                v-model="queryParams.isCharging"
+                placeholder="请选择充电状态"
+                clearable
+                style="width: 100%"
+                @keyup.enter="handleQuery"
+            >
+              <el-option :value="1" label="充电中">
+                <div style="display: flex; align-items: center;">
+                  <el-icon color="#67C23A" style="margin-right: 8px;"><Lightning /></el-icon>
+                  <span>充电中</span>
+                </div>
+              </el-option>
+              <el-option :value="0" label="未充电">
+                <div style="display: flex; align-items: center;">
+                  <el-icon color="#909399" style="margin-right: 8px;"><CircleClose /></el-icon>
+                  <span>未充电</span>
+                </div>
+              </el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="设备型号" prop="deviceModel">
+            <el-input
+                v-model="queryParams.deviceModel"
+                placeholder="请输入设备型号"
+                clearable
+                @keyup.enter="handleQuery"
+            >
+              <template #prefix>
+                <el-icon><Cellphone /></el-icon>
+              </template>
+            </el-input>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="系统版本" prop="osVersion">
+            <el-input
+                v-model="queryParams.osVersion"
+                placeholder="请输入系统版本"
+                clearable
+                @keyup.enter="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="应用版本" prop="appVersion">
+            <el-input
+                v-model="queryParams.appVersion"
+                placeholder="请输入应用版本"
+                clearable
+                @keyup.enter="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item label="IP地址" prop="ipAddress">
+            <el-input
+                v-model="queryParams.ipAddress"
+                placeholder="请输入IP地址"
+                clearable
+                @keyup.enter="handleQuery"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="24" :md="12" :lg="8" :xl="8">
+          <el-form-item label="创建时间">
+            <el-date-picker
+                v-model="dateRangeCreatedAt"
+                type="datetimerange"
+                range-separator="至"
+                start-placeholder="开始时间"
+                end-placeholder="结束时间"
+                value-format="YYYY-MM-DD HH:mm:ss"
+                format="YYYY-MM-DD HH:mm:ss"
+                style="width: 100%">
+            </el-date-picker>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="24" :md="12" :lg="8" :xl="8">
+          <el-form-item label="更新时间">
+            <el-date-picker
+                v-model="dateRangeUpdatedAt"
+                type="datetimerange"
+                range-separator="至"
+                start-placeholder="开始时间"
+                end-placeholder="结束时间"
+                value-format="YYYY-MM-DD HH:mm:ss"
+                format="YYYY-MM-DD HH:mm:ss"
+                style="width: 100%">
+            </el-date-picker>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <!-- 搜索按钮单独一行 -->
+      <el-row>
+        <el-col :span="24">
+          <div class="search-buttons">
+            <el-button type="primary" @click="handleQuery">
+              <el-icon><Search /></el-icon>
+              <span>搜索</span>
+            </el-button>
+            <el-button @click="resetQuery">
+              <el-icon><Refresh /></el-icon>
+              <span>重置</span>
+            </el-button>
+          </div>
+        </el-col>
+      </el-row>
     </el-form>
 
+    <!-- 分割线 -->
+    <el-divider class="divider-margin" />
+
+    <!-- 操作按钮区 -->
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
+      <el-col :span="24">
         <el-button
             type="primary"
             plain
-            size="default"
             @click="handleAdd"
         >
           <el-icon><Plus /></el-icon>
           <span>新增</span>
         </el-button>
-      </el-col>
-      <el-col :span="1.5">
         <el-button
             type="success"
             plain
-            size="default"
             :disabled="single"
             @click="handleUpdate"
         >
           <el-icon><Edit /></el-icon>
           <span>修改</span>
         </el-button>
-      </el-col>
-      <el-col :span="1.5">
         <el-button
             type="danger"
             plain
-            size="default"
             :disabled="multiple"
             @click="handleDelete"
         >
           <el-icon><Delete /></el-icon>
           <span>删除</span>
         </el-button>
-      </el-col>
-      <el-col :span="1.5">
         <el-button
             type="warning"
             plain
-            size="default"
             @click="handleExport"
         >
           <el-icon><Download /></el-icon>
           <span>导出</span>
         </el-button>
+        <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" style="float: right;"></right-toolbar>
       </el-col>
-      <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
+    <!-- 数据表格 -->
     <el-table v-loading="loading" :data="logList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="手机号" align="center" prop="phone">
+      <el-table-column label="手机号" align="center" prop="phone" min-width="120">
         <template #default="scope">
           <el-icon><Iphone /></el-icon> {{ scope.row.phone }}
         </template>
       </el-table-column>
-      <el-table-column label="手机电量" align="center" prop="batteryLevel" />
-      <el-table-column label="是否充电" align="center" prop="isCharging">
+      <el-table-column label="手机电量" align="center" prop="batteryLevel" min-width="100" />
+      <el-table-column label="是否充电" align="center" prop="isCharging" min-width="100">
         <template #default="scope">
           <el-tag v-if="scope.row.isCharging == 1" type="success">
             <el-icon><Lightning /></el-icon> 充电中
@@ -179,43 +213,41 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="内容描述 / 日志信息" align="center" prop="content" />
-      <el-table-column label="状态标识" align="center" prop="status" />
-      <el-table-column label="设备型号" align="center" prop="deviceModel">
+      <el-table-column label="内容描述 / 日志信息" align="center" prop="content" min-width="200" />
+      <el-table-column label="状态标识" align="center" prop="status" min-width="100" />
+      <el-table-column label="设备型号" align="center" prop="deviceModel" min-width="150">
         <template #default="scope">
           <el-icon><Cellphone /></el-icon> {{ scope.row.deviceModel }}
         </template>
       </el-table-column>
-      <el-table-column label="系统类型 Android / iOS" align="center" prop="osType" />
-      <el-table-column label="系统版本" align="center" prop="osVersion" />
-      <el-table-column label="应用版本" align="center" prop="appVersion" />
-      <el-table-column label="IP地址" align="center" prop="ipAddress" />
-      <el-table-column label="网络类型" align="center" prop="networkType" />
-      <el-table-column label="创建时间" align="center" prop="createdAt" width="180">
+      <el-table-column label="系统类型 Android / iOS" align="center" prop="osType" min-width="150" />
+      <el-table-column label="系统版本" align="center" prop="osVersion" min-width="100" />
+      <el-table-column label="应用版本" align="center" prop="appVersion" min-width="100" />
+      <el-table-column label="IP地址" align="center" prop="ipAddress" min-width="120" />
+      <el-table-column label="网络类型" align="center" prop="networkType" min-width="100" />
+      <el-table-column label="创建时间" align="center" prop="createdAt" min-width="180">
         <template #default="scope">
           <el-icon><Clock /></el-icon> {{ scope.row ? parseTime(scope.row.createdAt) : '' }}
         </template>
       </el-table-column>
-      <el-table-column label="更新时间" align="center" prop="updatedAt" width="180">
+      <el-table-column label="更新时间" align="center" prop="updatedAt" min-width="180">
         <template #default="scope">
           <el-icon><Clock /></el-icon> {{ scope.row ? parseTime(scope.row.updatedAt) : '' }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="150">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="150" fixed="right">
         <template #default="scope">
           <el-button
-              size="small"
-              type="primary"
               link
+              type="primary"
               @click="handleUpdate(scope.row)"
           >
             <el-icon><Edit /></el-icon>
             修改
           </el-button>
           <el-button
-              size="small"
-              type="danger"
               link
+              type="danger"
               @click="handleDelete(scope.row)"
           >
             <el-icon><Delete /></el-icon>
@@ -225,6 +257,7 @@
       </el-table-column>
     </el-table>
 
+    <!-- 分页 -->
     <pagination
         v-show="total>0"
         :total="total"
@@ -233,8 +266,9 @@
         @pagination="getList"
     />
 
+    <!-- 添加或修改对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
         <el-form-item label="手机号" prop="phone">
           <el-input v-model="form.phone" placeholder="请输入手机号">
             <template #prefix>
@@ -265,7 +299,7 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="内容描述 / 日志信息">
+        <el-form-item label="内容描述/日志信息">
           <el-input v-model="form.content" type="textarea" :rows="4" placeholder="请输入内容描述 / 日志信息"/>
         </el-form-item>
         <el-form-item label="设备型号" prop="deviceModel">
@@ -306,7 +340,7 @@ import { ref, reactive, onMounted } from 'vue'
 
 import {
   Search, Refresh, Plus, Edit, Delete, Download,
-  Iphone, Cellphone, Clock, Lightning, CircleClose,  // ✅ 确保导入了这两个图标
+  Iphone, Cellphone, Clock, Lightning, CircleClose,
   Check, Close
 } from '@element-plus/icons-vue'
 
@@ -528,14 +562,70 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 搜索表单样式 - 简洁白色风格 */
+.search-form-clean {
+  padding: 10px 0;
+  margin-bottom: 0;
+}
+
+.search-form-clean :deep(.el-form-item__label) {
+  font-weight: 400;
+  color: #606266;
+}
+
+/* 搜索按钮区域 */
+.search-buttons {
+  text-align: center;
+  padding-top: 10px;
+}
+
+.search-buttons .el-button {
+  min-width: 100px;
+  margin: 0 8px;
+}
+
+/* 分割线样式 */
+.divider-margin {
+  margin: 15px 0;
+}
+
+/* 按钮行间距 - 增加按钮之间的间距 */
 .mb8 {
+  margin-bottom: 12px;
+}
+
+.mb8 .el-button {
+  margin-right: 10px;
   margin-bottom: 8px;
 }
+
+/* 表格样式 */
+.el-table {
+  margin-top: 10px;
+}
+
+/* 对话框样式优化 */
+.dialog-footer {
+  text-align: right;
+}
+
+/* 下拉选项样式 */
 :deep(.el-select-dropdown__item) {
   padding: 8px 20px;
 }
 
 :deep(.el-select-dropdown__item:hover) {
   background-color: #f5f7fa;
+}
+
+/* 响应式优化 */
+@media screen and (max-width: 768px) {
+  .search-form-clean {
+    padding: 10px;
+  }
+
+  .mb8 .el-button {
+    margin-right: 5px;
+  }
 }
 </style>
