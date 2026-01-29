@@ -122,6 +122,16 @@
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+        <template #default="scope">
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+                     v-hasPermi="['GiftCard:GiftCard:edit']">修改
+          </el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)"
+                     v-hasPermi="['GiftCard:GiftCard:remove']">删除
+          </el-button>
+        </template>
+      </el-table-column>
     </el-table>
 
     <span>{{ amountSum }}</span>
@@ -133,6 +143,69 @@
         :page-sizes="[10, 20, 50, 100, 200]"
         @pagination="handlePagination"
     />
+
+    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
+      <el-form ref="GiftCardRef" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="类型" prop="giftType">
+          <el-select v-model="form.giftType" placeholder="请选择类型">
+            <el-option
+                v-for="dict in gift_type"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="时间" prop="dtStr">
+          <el-input v-model="form.dtStr" placeholder="请输入时间"/>
+        </el-form-item>
+        <el-form-item label="礼品卡代码" prop="code">
+          <el-input v-model="form.code" placeholder="请输入礼品卡代码"/>
+        </el-form-item>
+        <el-form-item label="订单号" prop="orderNumber">
+          <el-input v-model="form.orderNumber" placeholder="请输入订单号"/>
+        </el-form-item>
+        <el-form-item label="金额" prop="amount">
+          <el-input v-model="form.amount" placeholder="请输入金额"/>
+        </el-form-item>
+        <el-form-item label="使用类型" prop="usageType" class="search-narrow-item">
+          <el-select
+              v-model="form.usageType"
+              placeholder="请选择使用类型"
+              clearable
+              class="search-narrow-select"
+          >
+            <el-option
+                v-for="dict in ka_usage_type"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="状态" prop="status" class="search-narrow-item">
+          <el-select
+              v-model="form.status"
+              placeholder="请选择状态"
+              clearable
+              class="search-narrow-select"
+          >
+            <el-option
+                v-for="dict in ka_status"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
 
     <el-dialog title="按数量提取可用卡" v-model="openNumSearch" width="450px" append-to-body>
       <el-form :model="numSearchForm" label-width="100px">
@@ -163,6 +236,7 @@
               style="width: 100%"
           />
         </el-form-item>
+
       </el-form>
       <template #footer>
         <el-button type="primary" @click="submitNumSearch">查询提取</el-button>
@@ -254,11 +328,13 @@ import {
   // [修改点] 删除了 listOwnerOptions 引用，因为移除了拥有者下拉框
   searchByNum,
   searchByAmount,
-  exportAndChangeStatus
+  exportAndChangeStatus,
+  updateGiftCard
 } from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
 import { ref, reactive, toRefs, getCurrentInstance } from "vue"
 import { saveAs } from "file-saver"
+import {delGiftCard, getGiftCard} from "@/api/GiftCard/GiftCard";
 
 const instance = getCurrentInstance()
 const proxy = instance?.proxy
@@ -277,10 +353,18 @@ const multiple = ref(true)
 const total = ref(0)
 const amountSum = ref(0)
 const dateRange = ref([])
-// [修改点] 删除了 updateDateRange 变量
-// [修改点] 删除了 ownerOptions 变量
+const open = ref(false); // 控制弹窗显示
+const title = ref("");   // 弹窗标题
+const form = ref({});    // 表单数据
 const isExtractionMode = ref(false)
 const allExtractedData = ref([])
+const rules = ref({
+  giftType: [{ required: true, message: "礼品卡类型不能为空", trigger: "change" }],
+  code: [{ required: true, message: "礼品卡代码不能为空", trigger: "blur" }],
+  amount: [{ required: true, message: "金额不能为空", trigger: "blur" }],
+  orderNumber: [{ required: true, message: "订单号不能为空", trigger: "blur" }]
+});
+
 
 const data = reactive({
   queryParams: {
@@ -289,7 +373,6 @@ const data = reactive({
     giftType: null,
     code: null,
     orderNumber: null,
-    // [修改点] 删除了 amount, extraNumber, usageType, status, ownerId, beginUpdateTime, endUpdateTime 等参数
     beginTime: undefined,
     endTime: undefined
   },
@@ -398,6 +481,42 @@ function showResult(list) {
   proxy.$modal.msgSuccess("提取成功，结果已展示")
 }
 
+// 表单重置
+function reset() {
+  form.value = {
+    id: null,
+    giftType: null,
+    code: null,
+    orderNumber: null,
+    amount: null,
+    usageType: null,
+    status: "0",
+    remark: null
+  };
+  proxy.resetForm("GiftCardRef");
+}
+
+// 取消按钮
+function cancel() {
+  open.value = false;
+  reset();
+}
+
+// 提交按钮（保存修改）
+function submitForm() {
+  proxy.$refs["GiftCardRef"].validate(valid => {
+    if (valid) {
+      if (form.value.id != null) {
+        updateGiftCard(form.value).then(response => {
+          proxy.$modal.msgSuccess("修改成功");
+          open.value = false;
+          getList();
+        });
+      }
+    }
+  });
+}
+
 /** * 统一的分页处理入口 */
 function handlePagination({page, limit}) {
   if (isExtractionMode.value) {
@@ -432,6 +551,28 @@ function getList() {
 }
 
 // [修改点] 删除了 loadOwnerOptions 方法
+/** 修改按钮操作 */
+function handleUpdate(row) {
+  reset()
+  const _id = row.id || ids.value
+  getGiftCard(_id).then(response => {
+    form.value = response.data
+    open.value = true
+    title.value = "修改礼品卡"
+  })
+}
+
+/** 删除按钮操作 */
+function handleDelete(row) {
+  const _ids = row.id || ids.value
+  proxy.$modal.confirm('是否确认删除礼品卡编号为"' + _ids + '"的数据项？').then(function () {
+    return delGiftCard(_ids)
+  }).then(() => {
+    getList()
+    proxy.$modal.msgSuccess("删除成功")
+  }).catch(() => {
+  })
+}
 
 /** 搜索按钮操作 */
 function handleQuery() {
