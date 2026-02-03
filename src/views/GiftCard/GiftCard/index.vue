@@ -265,6 +265,7 @@
       <el-table-column label="礼品卡代码" align="center" prop="code" min-width="150"/>
       <el-table-column label="订单号" align="center" prop="orderNumber" min-width="150"/>
       <el-table-column label="金额" align="center" prop="amount" min-width="100"/>
+      <el-table-column label="编号" align="center" prop="extra_number" min-width="100"/>
       <el-table-column label="使用类型" align="center" prop="usageType" min-width="100">
         <template #default="scope">
           <dict-tag :options="ka_usage_type" :value="scope.row.usageType"/>
