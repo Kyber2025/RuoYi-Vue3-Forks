@@ -70,23 +70,27 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="状态变更" align="center" width="120">
+      <el-table-column label="状态变更" align="center" width="150">
         <template #default="scope">
           <div v-if="scope.row.oldStatus !== scope.row.newStatus">
-            {{ scope.row.oldStatus }} <el-icon><Right /></el-icon> {{ scope.row.newStatus }}
+            <el-tag type="info" size="small">{{ getDictLabel(ka_status, scope.row.oldStatus) }}</el-tag>
+            <el-icon><Right /></el-icon>
+            <el-tag type="success" size="small">{{ getDictLabel(ka_status, scope.row.newStatus) }}</el-tag>
           </div>
           <div v-else>
-            {{ scope.row.newStatus }}
+            <el-tag size="small">{{ getDictLabel(ka_status, scope.row.newStatus) }}</el-tag>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="类型变更" align="center" width="120">
+      <el-table-column label="类型变更" align="center" width="180">
         <template #default="scope">
           <div v-if="scope.row.oldUsageType !== scope.row.newUsageType && scope.row.newUsageType">
-            {{ scope.row.oldUsageType }} <el-icon><Right /></el-icon> {{ scope.row.newUsageType }}
+            <el-tag type="info" size="small">{{ getDictLabel(ka_usage_type, scope.row.oldUsageType) }}</el-tag>
+            <el-icon><Right /></el-icon>
+            <el-tag type="warning" size="small">{{ getDictLabel(ka_usage_type, scope.row.newUsageType) }}</el-tag>
           </div>
           <div v-else>
-            {{ scope.row.newUsageType || '-' }}
+            <el-tag size="small">{{ getDictLabel(ka_usage_type, scope.row.newUsageType) || '-' }}</el-tag>
           </div>
         </template>
       </el-table-column>
@@ -134,6 +138,8 @@ import { listGiftCardOperationLog, getGiftCardOperationLog,
   updateGiftCardOperationLog, exportGiftCardOperationLog } from "@/api/GiftCard/giftCardOperationLog";
 import { parseTime } from "@/utils/ruoyi";
 const { proxy } = getCurrentInstance();
+
+const { ka_status, ka_usage_type } = proxy.useDict('ka_status', 'ka_usage_type');
 
 const giftCardOperationLogList = ref([]);
 const open = ref(false);
@@ -187,6 +193,23 @@ function getList() {
   });
 }
 
+
+/**
+ * 字段转换函数
+ * @param dictOptions
+ * @param value
+ * @return {*|string|string}
+ */
+function getDictLabel(dictOptions, value) {
+  if (value === null || value === undefined || value === '') return '-';
+
+  const arr = Array.isArray(dictOptions) ? dictOptions
+      : Array.isArray(dictOptions?.value) ? dictOptions.value
+          : [];
+
+  const item = arr.find(d => String(d.value) === String(value));
+  return item?.label ?? String(value);
+}
 /** 取消按钮 */
 function cancel() {
   open.value = false;
