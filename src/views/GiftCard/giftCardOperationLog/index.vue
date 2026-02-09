@@ -19,7 +19,7 @@
             style="width: 200px"
         />
       </el-form-item>
-      <el-form-item label="操作类型" prop="operationType">
+      <el-form-item label="操作类型" prop="operationTypeDesc">
         <el-select
             v-model="queryParams.operationType"
             placeholder="请选择操作类型"
@@ -66,7 +66,7 @@
       <el-table-column label="操作类型" align="center" prop="operationType" width="220">
         <template #default="scope">
           <el-tag>
-            {{ giftCardOperOptions.find(opt => opt.value === scope.row.operationType)?.label || scope.row.operationType }}
+            {{ scope.row.operationTypeDesc || scope.row.operationType }}
           </el-tag>
         </template>
       </el-table-column>
@@ -165,10 +165,15 @@ const { queryParams, form, rules } = toRefs(data);
 const giftCardOperOptions = [
   { value: "SYSTEM_IMPORT", label: "系统创建" },
   { value: "UPDATE_WEB_ONE", label: "客户端单笔修改" },
-  { value: "UPDATE_APP", label: "手机端修改状态(卡密已经充值)" },
+  { value: "UPDATE_APP", label: "手机端修改状态(卡密充值)" },
   { value: "UPDATE_APP_GET", label: "手机端获取未使用的卡密" },
   { value: "UPDATE_WEB_BATCH", label: "客户端批量修改" },
   { value: "UPDATE_WEB_IMPORT", label: "客户端导入更新" },
+  { value: "UPDATE_WEB_AUTO", label: "客户端自动分配" },
+  { value: "UPDATE_WEB_AUTO_ERROR", label: "客户端自动分配失败" },
+  { value: "UPDATE_WEB_MANUAL", label: "客户端手动分配" },
+  { value: "UPDATE_WEB_MANUAL_ERROR", label: "客户端手动分配失败" },
+  { value: "UPDATE_WEB_MANUAL_FORCE", label: "客户端手动强制分配" },
   { value: "UPDATE_WEB_EXPORT", label: "客户端导出修改" }
 ];
 
