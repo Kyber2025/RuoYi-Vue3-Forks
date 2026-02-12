@@ -91,17 +91,24 @@ export function exportAndChangeStatus(query, newUsageType, newStatus, ids, exclu
     ...query,
     newUsageType: newUsageType,
     newStatus: newStatus,
-    ids: ids ? ids.join(',') : undefined,
   }
   if (excludeFields) {
     params.excludeFields = excludeFields
   }
-  return request({
+
+  const config = {
     url: '/GiftCard/GiftCard/exportAndChangeStatus',
     method: 'post',
     params: params,
     responseType: 'blob'
-  })
+  }
+
+  // 只有有 ids 时才传 data
+  if (ids && ids.length > 0) {
+    config.data = ids
+  }
+
+  return request(config)
 }
 
 // 查询礼品卡拥有者下拉列表

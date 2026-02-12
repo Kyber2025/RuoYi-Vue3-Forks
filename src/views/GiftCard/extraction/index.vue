@@ -662,6 +662,8 @@ function doRealExport(isSimple) {
       })
       .catch(() => {
         proxy.$modal.closeLoading();
+        proxy.$modal.msgError("导出失败，请稍后重试");
+        console.error("导出错误:", error);
       });
 }
 
