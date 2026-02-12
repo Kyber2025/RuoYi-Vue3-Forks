@@ -86,18 +86,21 @@ export function searchByAmount(query) {
 }
 
 // 导出并修改状态
-export function exportAndChangeStatus(query, newUsageType, newStatus,ids) {
+export function exportAndChangeStatus(query, newUsageType, newStatus, ids, excludeFields) {
+  const params = {
+    ...query,
+    newUsageType: newUsageType,
+    newStatus: newStatus,
+    ids: ids,
+  }
+  if (excludeFields && excludeFields.length > 0) {
+    params.excludeFields = excludeFields
+  }
   return request({
-    url: '/GiftCard/GiftCard/exportAndChangeStatus',
+    url: '/GiftCard/exportAndChangeStatus',
     method: 'post',
-    // 将查询参数和新的状态参数合并发送
-    params: {
-      ...query,
-      newUsageType: newUsageType,
-      newStatus: newStatus,
-      ids: ids
-    },
-    responseType: 'blob' // 必须设置，用于下载文件
+    params: params,
+    responseType: 'blob'
   })
 }
 

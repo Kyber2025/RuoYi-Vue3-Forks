@@ -336,8 +336,9 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitExportWithUpdate">确 定 导 出</el-button>
           <el-button @click="exportUpdateOpen = false">取 消</el-button>
+          <el-button type="info" plain @click="submitSimpleExport">简易导出</el-button>
+          <el-button type="primary" @click="submitExportWithUpdate">确定导出</el-button>
         </div>
       </template>
     </el-dialog>
@@ -499,6 +500,25 @@ function showResult(list) {
   proxy.$modal.msgSuccess("提取成功，结果已展示")
 }
 
+/** 简易导出（只导出时间、代码、金额） */
+function submitSimpleExport() {
+  const newUsageType = exportUpdateForm.value.newUsageType;
+  const newStatus = exportUpdateForm.value.newStatus;
+
+  let dataCount = isExtractionMode.value ? allExtractedData.value.length : total.value;
+
+  let msg = `共 ${dataCount} 条数据，仅导出【时间、礼品卡代码、金额】三列`;
+  if (newUsageType || (newStatus !== null && newStatus !== '')) {
+    msg += `，同时修改状态，是否确认？`;
+  } else {
+    msg += `，不修改状态，是否确认？`;
+  }
+
+  proxy.$modal.confirm(msg).then(() => {
+    doRealExport(true);  // true = 简易导出
+  }).catch(() => {});
+}
+
 function reset() {
   form.value = {
     id: null,
@@ -612,30 +632,21 @@ function submitExportWithUpdate() {
   const newUsageType = exportUpdateForm.value.newUsageType;
   const newStatus = exportUpdateForm.value.newStatus;
 
-  if (!newUsageType && (newStatus === null || newStatus === '')) {
-    proxy.$modal.confirm('您未选择任何变更项，将仅执行普通导出，是否继续？').then(() => {
-      doRealExport();
-    }).catch(() => {
-    });
-    return;
-  }
+  let dataCount = isExtractionMode.value ? allExtractedData.value.length : total.value;
 
-  let dataCount = 0;
-  if (isExtractionMode.value) {
-    dataCount = allExtractedData.value.length;
+  let msg = `共 ${dataCount} 条数据`;
+  if (newUsageType || (newStatus !== null && newStatus !== '')) {
+    msg += `，将修改状态并导出全部字段，是否确认？`;
   } else {
-    dataCount = total.value;
+    msg += `，将仅执行普通导出（不修改状态），是否确认？`;
   }
 
-  proxy.$modal.confirm(
-      `当前共有 ${dataCount} 条数据等待处理。\n\n确认要导出并修改这 ${dataCount} 条数据的状态吗？`
-  ).then(() => {
-    doRealExport();
-  }).catch(() => {
-  });
+  proxy.$modal.confirm(msg).then(() => {
+    doRealExport(false);
+  }).catch(() => {});
 }
 
-function doRealExport() {
+function doRealExport(isSimple) {
   const query = {
     ...queryParams.value,
     beginTime: dateRange.value?.[0] || undefined,
@@ -647,15 +658,23 @@ function doRealExport() {
     ids = allExtractedData.value.map(item => item.id).join(',');
   }
 
+  const excludeFields = isSimple ? [
+    'id', 'sender', 'subject', 'giftType', 'orderNumber',
+    'extraNumber', 'usageType', 'status', 'updateUser',
+    'ownerUserId', 'ownerUserName'
+  ] : null;
+
   proxy.$modal.loading("正在导出并更新数据，请稍候...");
 
-  exportAndChangeStatus(query, exportUpdateForm.value.newUsageType, exportUpdateForm.value.newStatus, ids)
+  exportAndChangeStatus(query, exportUpdateForm.value.newUsageType, exportUpdateForm.value.newStatus, ids, excludeFields)
       .then((res) => {
-        const blob = new Blob([res])
-        saveAs(blob, `GiftCard_Updated_${new Date().getTime()}.xlsx`)
-
+        const blob = new Blob([res]);
+        const fileName = isSimple
+            ? `GiftCard_Simple_${new Date().getTime()}.xlsx`
+            : `GiftCard_Updated_${new Date().getTime()}.xlsx`;
+        saveAs(blob, fileName);
         proxy.$modal.closeLoading();
-        proxy.$modal.msgSuccess("操作成功");
+        proxy.$modal.msgSuccess("导出成功");
         exportUpdateOpen.value = false;
       })
       .catch(() => {
