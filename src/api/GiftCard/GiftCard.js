@@ -91,13 +91,13 @@ export function exportAndChangeStatus(query, newUsageType, newStatus, ids, exclu
     ...query,
     newUsageType: newUsageType,
     newStatus: newStatus,
-    ids: ids,
+    ids: ids ? ids.join(',') : undefined,
   }
-  if (excludeFields && excludeFields.length > 0) {
+  if (excludeFields) {
     params.excludeFields = excludeFields
   }
   return request({
-    url: '/GiftCard/exportAndChangeStatus',
+    url: '/GiftCard/GiftCard/exportAndChangeStatus',
     method: 'post',
     params: params,
     responseType: 'blob'

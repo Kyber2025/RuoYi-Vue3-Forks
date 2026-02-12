@@ -142,9 +142,6 @@
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
                      v-hasPermi="['GiftCard:GiftCard:edit']">修改
           </el-button>
-          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
-                     v-hasPermi="['GiftCard:GiftCard:remove']">删除
-          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -353,7 +350,6 @@ import {
   searchByAmount,
   exportAndChangeStatus,
   updateGiftCard,
-  delGiftCard,
   getGiftCard
 } from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
@@ -592,17 +588,6 @@ function handleUpdate(row) {
   })
 }
 
-function handleDelete(row) {
-  const _ids = row.id || ids.value
-  proxy.$modal.confirm('是否确认删除礼品卡编号为"' + _ids + '"的数据项？').then(function () {
-    return delGiftCard(_ids)
-  }).then(() => {
-    getList()
-    proxy.$modal.msgSuccess("删除成功")
-  }).catch(() => {
-  })
-}
-
 function handleQuery() {
   queryParams.value.pageNum = 1
   getList()
@@ -655,14 +640,12 @@ function doRealExport(isSimple) {
 
   let ids = null;
   if (isExtractionMode.value && allExtractedData.value.length > 0) {
-    ids = allExtractedData.value.map(item => item.id).join(',');
+    ids = allExtractedData.value.map(item => item.id);
   }
 
-  const excludeFields = isSimple ? [
-    'id', 'sender', 'subject', 'giftType', 'orderNumber',
-    'extraNumber', 'usageType', 'status', 'updateUser',
-    'ownerUserId', 'ownerUserName'
-  ] : null;
+  const excludeFields = isSimple
+      ? 'id,sender,subject,giftType,orderNumber,extraNumber,usageType,status,updateUser,ownerUserId,ownerUserName'
+      : null;
 
   proxy.$modal.loading("正在导出并更新数据，请稍候...");
 
