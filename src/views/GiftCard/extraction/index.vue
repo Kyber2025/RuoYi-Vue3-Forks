@@ -244,6 +244,16 @@
         <el-form-item label="提取数量" required>
           <el-input type="number" v-model="numSearchForm.totalNum" placeholder="例如: 10" />
         </el-form-item>
+        <el-form-item label="拥有者">
+          <el-select v-model="numSearchForm.ownerId" placeholder="不选则提取未分配的卡" clearable filterable style="width: 100%">
+            <el-option
+                v-for="item in ownerOptions"
+                :key="item.ownerId"
+                :label="item.ownerName"
+                :value="item.ownerId"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="创建时间">
           <el-date-picker
               v-model="numSearchForm.dateRange"
@@ -280,6 +290,16 @@
         </el-form-item>
         <el-form-item label="目标总金额" required>
           <el-input type="number" v-model="amountSearchForm.totalAmount" placeholder="例如: 3000 (必须能整除面值)" />
+        </el-form-item>
+        <el-form-item label="拥有者">
+          <el-select v-model="amountSearchForm.ownerId" placeholder="不选则提取未分配的卡" clearable filterable style="width: 100%">
+            <el-option
+                v-for="item in ownerOptions"
+                :key="item.ownerId"
+                :label="item.ownerName"
+                :value="item.ownerId"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="创建时间">
           <el-date-picker
@@ -350,7 +370,8 @@ import {
   searchByAmount,
   exportAndChangeStatus,
   updateGiftCard,
-  getGiftCard
+  getGiftCard,
+  listOwnerOptions
 } from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
 import { ref, reactive, toRefs, getCurrentInstance } from "vue"
@@ -407,6 +428,7 @@ const numSearchForm = ref({
   giftType: null,
   amount: null,
   totalNum: null,
+  ownerId: null,
   dateRange: []
 })
 
@@ -414,8 +436,22 @@ const amountSearchForm = ref({
   giftType: null,
   amount: null,
   totalAmount: null,
+  ownerId: null,
   dateRange: []
 })
+
+const ownerOptions = ref([])
+
+function loadOwnerOptions() {
+  listOwnerOptions().then(res => {
+    const list = res?.data ?? res?.rows ?? []
+    ownerOptions.value = list
+  }).catch(err => {
+    console.error("loadOwnerOptions error:", err)
+    ownerOptions.value = []
+  })
+}
+loadOwnerOptions()
 
 const exportUpdateOpen = ref(false);
 const exportUpdateForm = ref({
@@ -424,12 +460,12 @@ const exportUpdateForm = ref({
 });
 
 function handleOpenNumSearch() {
-  numSearchForm.value = {giftType: null, amount: null, totalNum: null, dateRange: []}
+  numSearchForm.value = {giftType: null, amount: null, totalNum: null, ownerId: null, dateRange: []}
   openNumSearch.value = true
 }
 
 function handleOpenAmountSearch() {
-  amountSearchForm.value = {giftType: null, amount: null, totalAmount: null, dateRange: []}
+  amountSearchForm.value = {giftType: null, amount: null, totalAmount: null, ownerId: null, dateRange: []}
   openAmountSearch.value = true
 }
 
