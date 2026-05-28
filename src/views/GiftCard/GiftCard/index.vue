@@ -252,6 +252,12 @@
       </el-table-column>
       <el-table-column label="时间" align="center" prop="dtStr" min-width="120"/>
       <el-table-column label="礼品卡代码" align="center" prop="code" min-width="150"/>
+      <el-table-column label="兑换PIN" align="center" prop="redemptionPin" min-width="120">
+        <template #default="scope">
+          <span v-if="scope.row.redemptionPin">{{ scope.row.redemptionPin }}</span>
+          <span v-else style="color:#c0c4cc">-</span>
+        </template>
+      </el-table-column>
       <el-table-column label="订单号" align="center" prop="orderNumber" min-width="150"/>
       <el-table-column label="金额" align="center" prop="amount" min-width="100"/>
       <el-table-column label="编号" align="center" prop="extraNumber" min-width="100"/>
@@ -322,6 +328,9 @@
         </el-form-item>
         <el-form-item label="礼品卡代码" prop="code">
           <el-input v-model="form.code" placeholder="请输入礼品卡代码"/>
+        </el-form-item>
+        <el-form-item label="兑换PIN" prop="redemptionPin" v-if="form.giftType === '3'">
+          <el-input v-model="form.redemptionPin" placeholder="请输入 Flipkart 兑换 PIN"/>
         </el-form-item>
         <el-form-item label="订单号" prop="orderNumber">
           <el-input v-model="form.orderNumber" placeholder="请输入订单号"/>
@@ -673,6 +682,7 @@ const data = reactive({
     //dtStr: null,
     ownerId: null,
     code: null,
+    redemptionPin: null,
     orderNumber: null,
     amount: null,
     extraNumber: null,
@@ -837,6 +847,7 @@ function reset() {
     giftType: null,
     dtStr: null,
     code: null,
+    redemptionPin: null,
     orderNumber: null,
     amount: null,
     extraNumber: null,
