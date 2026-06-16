@@ -332,7 +332,7 @@
           <el-select v-model="exportUpdateForm.newUsageType" placeholder="请选择(留空不修改)" clearable
                      style="width: 100%">
             <el-option
-                v-for="dict in ka_usage_type"
+                v-for="dict in exportUsageTypeOptions"
                 :key="dict.value"
                 :label="dict.label"
                 :value="dict.value"
@@ -343,7 +343,7 @@
           <el-select v-model="exportUpdateForm.newStatus" placeholder="请选择(留空不修改)" clearable
                      style="width: 100%">
             <el-option
-                v-for="dict in ka_status"
+                v-for="dict in exportStatusOptions"
                 :key="dict.value"
                 :label="dict.label"
                 :value="dict.value"
@@ -374,7 +374,7 @@ import {
   listOwnerOptions
 } from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
-import { ref, reactive, toRefs, getCurrentInstance } from "vue"
+import { ref, reactive, toRefs, computed, getCurrentInstance } from "vue"
 import { saveAs } from "file-saver"
 
 const instance = getCurrentInstance()
@@ -383,6 +383,15 @@ const {ka_status, ka_usage_type, gift_type} = proxy.useDict(
     'ka_status',
     'ka_usage_type',
     'gift_type'
+)
+
+// 导出并变更状态弹窗：变更目标不应是"创建/未使用"——导出即标记为已使用类状态，
+// 故下拉框过滤掉 使用类型=-1(未使用) 和 状态=0(创建)
+const exportUsageTypeOptions = computed(() =>
+    (ka_usage_type.value || []).filter(d => String(d.value) !== '-1')
+)
+const exportStatusOptions = computed(() =>
+    (ka_status.value || []).filter(d => String(d.value) !== '0')
 )
 
 const GiftCardList = ref([])

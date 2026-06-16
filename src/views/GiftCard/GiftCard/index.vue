@@ -327,7 +327,9 @@
           <el-input v-model="form.dtStr" placeholder="请输入时间"/>
         </el-form-item>
         <el-form-item label="礼品卡代码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入礼品卡代码"/>
+          <!-- 新增：可输入；修改：脱敏只读，不暴露完整卡号(提交时仍用原始 form.code) -->
+          <el-input v-if="form.id == null" v-model="form.code" placeholder="请输入礼品卡代码"/>
+          <el-input v-else :model-value="maskedCode" disabled placeholder="卡号已隐藏"/>
         </el-form-item>
         <el-form-item label="兑换PIN" prop="redemptionPin" v-if="form.giftType === '3'">
           <el-input v-model="form.redemptionPin" placeholder="请输入 Flipkart 兑换 PIN"/>
@@ -643,7 +645,7 @@ import {
   exportAndChangeStatus
 } from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
-import { ref, reactive, toRefs, getCurrentInstance } from "vue"
+import { ref, reactive, toRefs, computed, getCurrentInstance } from "vue"
 import { saveAs } from "file-saver"
 import { ElMessageBox, ElMessage } from "element-plus"
 
@@ -697,6 +699,15 @@ const data = reactive({
 })
 
 const {queryParams, form, rules} = toRefs(data)
+
+// 卡密脱敏：修改弹窗里不暴露完整卡号，仅显示前2后2位，如 WB****Y4
+function maskCode(code) {
+  if (!code) return ''
+  const s = String(code)
+  if (s.length <= 4) return '****'
+  return s.slice(0, 2) + '****' + s.slice(-2)
+}
+const maskedCode = computed(() => maskCode(form.value.code))
 
 const openNumSearch = ref(false)
 const openAmountSearch = ref(false)
