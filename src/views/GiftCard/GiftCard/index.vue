@@ -227,7 +227,8 @@
         </el-button>
       </el-col>
 
-      <el-col :span="1.5">
+      <!-- 导入更新：暂时隐藏，需要时把 v-if 改回 true 即可恢复 -->
+      <el-col :span="1.5" v-if="false">
         <el-upload
             class="upload-demo"
             action=""

@@ -5,8 +5,8 @@
       <el-tab-pane label="按操作人统计" name="operator">
         <el-form :inline="true" label-width="80px">
           <el-form-item label="操作人">
-            <el-input v-model="opName" placeholder="请输入操作人" clearable style="width: 180px"
-                      @keyup.enter="loadOpSummary" />
+            <el-autocomplete v-model="opName" :fetch-suggestions="queryOperators" placeholder="请输入操作人"
+                             clearable style="width: 180px" @keyup.enter="loadOpSummary" @select="loadOpSummary" />
           </el-form-item>
           <el-form-item label="使用时间">
             <el-date-picker v-model="opDateRange" type="daterange" value-format="YYYY-MM-DD"
@@ -103,6 +103,7 @@ const opLoading = ref(false)
 const opSummary = ref([])
 const opName = ref(null)
 const opDateRange = ref([])
+const allOperators = ref([]) // 全量操作人列表（自动补全用，首次无筛选加载时填充）
 
 function opParams() {
   const p = { operatorName: opName.value }
@@ -115,8 +116,20 @@ function loadOpSummary() {
   opLoading.value = true
   summaryByOperator(opParams()).then(res => {
     opSummary.value = res.rows || res.data || []
+    // 无任何筛选时，把当前全部操作人缓存为补全候选
+    if (!opName.value && (!opDateRange.value || opDateRange.value.length !== 2)) {
+      allOperators.value = opSummary.value.map(r => r.userName).filter(Boolean)
+    }
     opLoading.value = false
   }).catch(() => { opLoading.value = false })
+}
+// 自动补全：输入时返回匹配的操作人
+function queryOperators(queryString, cb) {
+  const list = allOperators.value.map(name => ({ value: name }))
+  const results = queryString
+    ? list.filter(o => o.value.toLowerCase().includes(queryString.toLowerCase()))
+    : list
+  cb(results)
 }
 function resetOp() { opName.value = null; opDateRange.value = []; loadOpSummary() }
 function exportOpSummary() {

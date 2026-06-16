@@ -1,5 +1,43 @@
 <template>
   <div class="app-container">
+    <!-- 我的提取额度 -->
+    <el-alert v-if="myQuotaData" :closable="false" style="margin-bottom: 12px;"
+              :type="myQuotaRemain <= 0 ? 'error' : 'success'">
+      <template #title>
+        <div style="display:flex; align-items:center; justify-content:space-between; font-size: 14px;">
+          <span>
+            我的提取额度：总 <b>₹{{ myQuotaData.totalQuota }}</b>
+            ｜ 已用 <b>₹{{ myQuotaData.usedAmount }}</b>
+            ｜ 剩余 <b :style="{ color: myQuotaRemain <= 0 ? '#f56c6c' : '#67c23a' }">₹{{ myQuotaRemain }}</b>
+            <span v-if="myQuotaRemain <= 0" style="color:#f56c6c; margin-left:8px;">（额度已用完，请先核销）</span>
+          </span>
+          <el-button size="small" type="warning" plain @click="openSettlement"
+                     :disabled="Number(myQuotaData.usedAmount) <= 0">申请核销</el-button>
+        </div>
+      </template>
+    </el-alert>
+    <el-alert v-else :closable="false" type="warning" style="margin-bottom: 12px;"
+              title="当前账号未开通提取额度，将无法提取，请联系管理员开通" />
+
+    <!-- 申请核销弹窗 -->
+    <el-dialog title="申请核销" v-model="settlementOpen" width="460px" append-to-body>
+      <div style="margin-bottom:12px; color:#606266;">
+        本次核销金额（当前已消耗额度）：<b style="color:#f56c6c;">₹{{ myQuotaData ? myQuotaData.usedAmount : 0 }}</b>
+      </div>
+      <el-form label-width="90px">
+        <el-form-item label="支付截图">
+          <image-upload v-model="settlementForm.paymentImage" :limit="1" />
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="settlementForm.remark" type="textarea" placeholder="可选" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="settlementOpen = false">取 消</el-button>
+        <el-button type="primary" @click="doSubmitSettlement">提交申请</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 搜索表单 -->
     <el-form :model="queryParams" ref="queryRef" v-show="showSearch" label-width="90px" class="search-form-clean">
       <el-row :gutter="20">
@@ -113,7 +151,12 @@
         </template>
       </el-table-column>
       <el-table-column label="时间" align="center" prop="dtStr" min-width="120"/>
-      <el-table-column label="礼品卡代码" align="center" prop="code" min-width="150"/>
+      <el-table-column label="礼品卡代码" align="center" prop="code" min-width="150">
+        <template #default="scope">
+          <span v-if="String(scope.row.status) === '3'" style="color:#e6a23c;">（使用中·不可见）</span>
+          <span v-else>{{ maskCode(scope.row.code) }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="订单号" align="center" prop="orderNumber" min-width="150"/>
       <el-table-column label="金额" align="center" prop="amount" min-width="100"/>
       <el-table-column label="使用类型" align="center" prop="usageType" min-width="100">
@@ -376,9 +419,37 @@ import {
 import {parseTime} from "../../../utils/ruoyi.js";
 import { ref, reactive, toRefs, computed, getCurrentInstance } from "vue"
 import { saveAs } from "file-saver"
+import { myQuota } from "@/api/GiftCard/quota"
+import { submitSettlement } from "@/api/GiftCard/settlement"
 
 const instance = getCurrentInstance()
 const proxy = instance?.proxy
+
+// 我的提取额度
+const myQuotaData = ref(null)
+const myQuotaRemain = computed(() => {
+  if (!myQuotaData.value) return 0
+  return Number(myQuotaData.value.totalQuota || 0) - Number(myQuotaData.value.usedAmount || 0)
+})
+function loadMyQuota() {
+  myQuota().then(res => { myQuotaData.value = res.data || null }).catch(() => { myQuotaData.value = null })
+}
+loadMyQuota()
+
+// 申请核销
+const settlementOpen = ref(false)
+const settlementForm = ref({ paymentImage: '', remark: '' })
+function openSettlement() {
+  settlementForm.value = { paymentImage: '', remark: '' }
+  settlementOpen.value = true
+}
+function doSubmitSettlement() {
+  submitSettlement(settlementForm.value).then(() => {
+    proxy.$modal.msgSuccess("核销申请已提交，等待审核")
+    settlementOpen.value = false
+    loadMyQuota()
+  })
+}
 const {ka_status, ka_usage_type, gift_type} = proxy.useDict(
     'ka_status',
     'ka_usage_type',
@@ -393,6 +464,15 @@ const exportUsageTypeOptions = computed(() =>
 const exportStatusOptions = computed(() =>
     (ka_status.value || []).filter(d => String(d.value) !== '0')
 )
+
+// 卡号脱敏：列表/提取结果都只显示前3****后4，导出Excel(后端按id重查)仍是完整卡号
+function maskCode(code) {
+  if (!code) return ''
+  const s = String(code)
+  if (s.includes('*')) return s        // 已脱敏，原样返回
+  if (s.length <= 7) return s.slice(0, 1) + '****'
+  return s.slice(0, 3) + '*'.repeat(s.length - 7) + s.slice(-4)
+}
 
 const GiftCardList = ref([])
 const loading = ref(true)
@@ -695,7 +775,20 @@ function doRealExport(isSimple) {
   proxy.$modal.loading("正在导出并更新数据，请稍候...");
 
   exportAndChangeStatus(query, exportUpdateForm.value.newUsageType, exportUpdateForm.value.newStatus, ids, excludeFields)
-      .then((res) => {
+      .then(async (res) => {
+        // 后端返回的可能是错误JSON(如"提取额度不足")而非Excel，先识别
+        if (res && res.type && res.type.indexOf('json') !== -1) {
+          const text = await res.text();
+          proxy.$modal.closeLoading();
+          try {
+            const json = JSON.parse(text);
+            proxy.$modal.msgError(json.msg || "导出失败");
+          } catch (e) {
+            proxy.$modal.msgError("导出失败");
+          }
+          loadMyQuota();
+          return;
+        }
         const blob = new Blob([res]);
         const fileName = isSimple
             ? `GiftCard_Simple_${new Date().getTime()}.xlsx`
@@ -704,8 +797,9 @@ function doRealExport(isSimple) {
         proxy.$modal.closeLoading();
         proxy.$modal.msgSuccess("导出成功");
         exportUpdateOpen.value = false;
+        loadMyQuota(); // 提取成功后刷新我的额度(已用增加)
       })
-      .catch(() => {
+      .catch((error) => {
         proxy.$modal.closeLoading();
         proxy.$modal.msgError("导出失败，请稍后重试");
         console.error("导出错误:", error);
