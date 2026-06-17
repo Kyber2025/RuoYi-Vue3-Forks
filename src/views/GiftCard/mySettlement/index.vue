@@ -61,9 +61,16 @@
     <!-- 申请核销弹窗 -->
     <el-dialog title="申请核销" v-model="submitOpen" width="460px" append-to-body>
       <div style="margin-bottom:12px; color:#606266;">
-        本次核销金额（当前已消耗额度）：<b style="color:#f56c6c;">₹{{ quota ? quota.usedAmount : 0 }}</b>
+        当前已消耗额度：<b style="color:#f56c6c;">₹{{ quota ? quota.usedAmount : 0 }}</b>（可部分核销）
       </div>
       <el-form label-width="90px">
+        <el-form-item label="核销金额">
+          <el-input-number v-model="submitForm.amount" :min="0.01"
+                           :max="quota ? Number(quota.usedAmount) : 0" :step="100" :precision="2"
+                           controls-position="right" style="width: 100%" />
+          <el-button link type="primary" style="margin-left:8px;"
+                     @click="submitForm.amount = quota ? Number(quota.usedAmount) : 0">全额</el-button>
+        </el-form-item>
         <el-form-item label="支付截图">
           <image-upload v-model="submitForm.paymentImage" :limit="1" />
         </el-form-item>
@@ -116,12 +123,17 @@ function getList() {
 }
 
 const submitOpen = ref(false)
-const submitForm = ref({ paymentImage: '', remark: '' })
+const submitForm = ref({ amount: 0, paymentImage: '', remark: '' })
 function openSubmit() {
-  submitForm.value = { paymentImage: '', remark: '' }
+  // 默认全额核销当前已消耗
+  submitForm.value = { amount: quota.value ? Number(quota.value.usedAmount) : 0, paymentImage: '', remark: '' }
   submitOpen.value = true
 }
 function doSubmit() {
+  if (!submitForm.value.amount || submitForm.value.amount <= 0) {
+    proxy.$modal.msgError("请输入核销金额")
+    return
+  }
   submitSettlement(submitForm.value).then(() => {
     proxy.$modal.msgSuccess("核销申请已提交，等待审核")
     submitOpen.value = false

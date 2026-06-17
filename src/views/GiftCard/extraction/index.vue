@@ -22,9 +22,16 @@
     <!-- 申请核销弹窗 -->
     <el-dialog title="申请核销" v-model="settlementOpen" width="460px" append-to-body>
       <div style="margin-bottom:12px; color:#606266;">
-        本次核销金额（当前已消耗额度）：<b style="color:#f56c6c;">₹{{ myQuotaData ? myQuotaData.usedAmount : 0 }}</b>
+        当前已消耗额度：<b style="color:#f56c6c;">₹{{ myQuotaData ? myQuotaData.usedAmount : 0 }}</b>（可部分核销）
       </div>
       <el-form label-width="90px">
+        <el-form-item label="核销金额">
+          <el-input-number v-model="settlementForm.amount" :min="0.01"
+                           :max="myQuotaData ? Number(myQuotaData.usedAmount) : 0" :step="100" :precision="2"
+                           controls-position="right" style="width: 100%" />
+          <el-button link type="primary" style="margin-left:8px;"
+                     @click="settlementForm.amount = myQuotaData ? Number(myQuotaData.usedAmount) : 0">全额</el-button>
+        </el-form-item>
         <el-form-item label="支付截图">
           <image-upload v-model="settlementForm.paymentImage" :limit="1" />
         </el-form-item>
@@ -438,12 +445,17 @@ loadMyQuota()
 
 // 申请核销
 const settlementOpen = ref(false)
-const settlementForm = ref({ paymentImage: '', remark: '' })
+const settlementForm = ref({ amount: 0, paymentImage: '', remark: '' })
 function openSettlement() {
-  settlementForm.value = { paymentImage: '', remark: '' }
+  // 默认全额核销当前已消耗
+  settlementForm.value = { amount: myQuotaData.value ? Number(myQuotaData.value.usedAmount) : 0, paymentImage: '', remark: '' }
   settlementOpen.value = true
 }
 function doSubmitSettlement() {
+  if (!settlementForm.value.amount || settlementForm.value.amount <= 0) {
+    proxy.$modal.msgError("请输入核销金额")
+    return
+  }
   submitSettlement(settlementForm.value).then(() => {
     proxy.$modal.msgSuccess("核销申请已提交，等待审核")
     settlementOpen.value = false
@@ -462,7 +474,8 @@ const exportUsageTypeOptions = computed(() =>
     (ka_usage_type.value || []).filter(d => String(d.value) !== '-1')
 )
 const exportStatusOptions = computed(() =>
-    (ka_status.value || []).filter(d => String(d.value) !== '0')
+    // 去掉 创建(0) 和 使用中(3)：导出变更目标只应是已使用类状态
+    (ka_status.value || []).filter(d => String(d.value) !== '0' && String(d.value) !== '3')
 )
 
 // 卡号脱敏：列表/提取结果都只显示前3****后4，导出Excel(后端按id重查)仍是完整卡号
