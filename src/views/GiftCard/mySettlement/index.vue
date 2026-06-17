@@ -1,7 +1,11 @@
 <template>
   <div class="app-container">
+    <!-- 管理员不受额度限制，无需核销 -->
+    <el-alert v-if="isAdmin" :closable="false" type="info"
+              title="当前为管理员账户，提取不受额度限制，无需核销" />
+
     <!-- 我的额度 -->
-    <el-alert v-if="quota" :closable="false" style="margin-bottom: 12px;"
+    <el-alert v-if="!isAdmin && quota" :closable="false" style="margin-bottom: 12px;"
               :type="remain <= 0 ? 'error' : 'success'">
       <template #title>
         <div style="display:flex; align-items:center; justify-content:space-between; font-size:14px;">
@@ -15,11 +19,11 @@
         </div>
       </template>
     </el-alert>
-    <el-alert v-else :closable="false" type="warning" style="margin-bottom: 12px;"
+    <el-alert v-else-if="!isAdmin" :closable="false" type="warning" style="margin-bottom: 12px;"
               title="当前账号未开通提取额度" />
 
-    <!-- 我的核销记录（可展开看审核流程） -->
-    <el-table v-loading="loading" :data="list" border>
+    <!-- 我的核销记录（可展开看审核流程）；管理员无核销，不显示 -->
+    <el-table v-if="!isAdmin" v-loading="loading" :data="list" border>
       <el-table-column type="expand">
         <template #default="scope">
           <div style="padding: 10px 30px;">
@@ -90,8 +94,12 @@
 import { mySettlement, submitSettlement } from "@/api/GiftCard/settlement"
 import { myQuota } from "@/api/GiftCard/quota"
 import { ref, reactive, toRefs, computed, getCurrentInstance } from "vue"
+import useUserStore from "@/store/modules/user"
 
 const { proxy } = getCurrentInstance()
+
+// 是否超级管理员（豁免额度，无需核销）
+const isAdmin = computed(() => (useUserStore().roles || []).includes('admin'))
 
 const loading = ref(false)
 const total = ref(0)
@@ -142,6 +150,9 @@ function doSubmit() {
   })
 }
 
-loadQuota()
-getList()
+// 管理员豁免额度，无需查询额度和核销记录
+if (!isAdmin.value) {
+  loadQuota()
+  getList()
+}
 </script>

@@ -1,23 +1,27 @@
 <template>
   <div class="app-container">
-    <!-- 我的提取额度 -->
-    <el-alert v-if="myQuotaData" :closable="false" style="margin-bottom: 12px;"
-              :type="myQuotaRemain <= 0 ? 'error' : 'success'">
-      <template #title>
-        <div style="display:flex; align-items:center; justify-content:space-between; font-size: 14px;">
-          <span>
-            我的提取额度：总 <b>₹{{ myQuotaData.totalQuota }}</b>
-            ｜ 已用 <b>₹{{ myQuotaData.usedAmount }}</b>
-            ｜ 剩余 <b :style="{ color: myQuotaRemain <= 0 ? '#f56c6c' : '#67c23a' }">₹{{ myQuotaRemain }}</b>
-            <span v-if="myQuotaRemain <= 0" style="color:#f56c6c; margin-left:8px;">（额度已用完，请先核销）</span>
-          </span>
-          <el-button size="small" type="warning" plain @click="openSettlement"
-                     :disabled="Number(myQuotaData.usedAmount) <= 0">申请核销</el-button>
-        </div>
-      </template>
-    </el-alert>
-    <el-alert v-else :closable="false" type="warning" style="margin-bottom: 12px;"
-              title="当前账号未开通提取额度，将无法提取，请联系管理员开通" />
+    <!-- 我的提取额度（管理员不受限制，单独提示） -->
+    <el-alert v-if="isAdmin" :closable="false" type="info" style="margin-bottom: 12px;"
+              title="当前为管理员账户，提取不受额度限制" />
+    <template v-else>
+      <el-alert v-if="myQuotaData" :closable="false" style="margin-bottom: 12px;"
+                :type="myQuotaRemain <= 0 ? 'error' : 'success'">
+        <template #title>
+          <div style="display:flex; align-items:center; justify-content:space-between; font-size: 14px;">
+            <span>
+              我的提取额度：总 <b>₹{{ myQuotaData.totalQuota }}</b>
+              ｜ 已用 <b>₹{{ myQuotaData.usedAmount }}</b>
+              ｜ 剩余 <b :style="{ color: myQuotaRemain <= 0 ? '#f56c6c' : '#67c23a' }">₹{{ myQuotaRemain }}</b>
+              <span v-if="myQuotaRemain <= 0" style="color:#f56c6c; margin-left:8px;">（额度已用完，请先核销）</span>
+            </span>
+            <el-button size="small" type="warning" plain @click="openSettlement"
+                       :disabled="Number(myQuotaData.usedAmount) <= 0">申请核销</el-button>
+          </div>
+        </template>
+      </el-alert>
+      <el-alert v-else :closable="false" type="warning" style="margin-bottom: 12px;"
+                title="当前账号未开通提取额度，将无法提取，请联系管理员开通" />
+    </template>
 
     <!-- 申请核销弹窗 -->
     <el-dialog title="申请核销" v-model="settlementOpen" width="460px" append-to-body>
@@ -428,9 +432,13 @@ import { ref, reactive, toRefs, computed, getCurrentInstance } from "vue"
 import { saveAs } from "file-saver"
 import { myQuota } from "@/api/GiftCard/quota"
 import { submitSettlement } from "@/api/GiftCard/settlement"
+import useUserStore from "@/store/modules/user"
 
 const instance = getCurrentInstance()
 const proxy = instance?.proxy
+
+// 是否超级管理员（豁免额度）
+const isAdmin = computed(() => (useUserStore().roles || []).includes('admin'))
 
 // 我的提取额度
 const myQuotaData = ref(null)
@@ -439,6 +447,7 @@ const myQuotaRemain = computed(() => {
   return Number(myQuotaData.value.totalQuota || 0) - Number(myQuotaData.value.usedAmount || 0)
 })
 function loadMyQuota() {
+  if (isAdmin.value) return // 管理员不受额度限制，无需查询
   myQuota().then(res => { myQuotaData.value = res.data || null }).catch(() => { myQuotaData.value = null })
 }
 loadMyQuota()
