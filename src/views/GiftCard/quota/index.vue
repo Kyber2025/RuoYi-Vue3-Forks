@@ -134,7 +134,8 @@ function resetQuery() {
   getList()
 }
 function loadOwners() {
-  listOwnerOptions().then(res => { ownerOptions.value = res.data || [] }).catch(() => {})
+  // allFlag=true：列出所有有效账号（额度可设给任意账号，而非仅“当过归属人”的）
+  listOwnerOptions({ allFlag: true }).then(res => { ownerOptions.value = res.data || [] }).catch(() => {})
 }
 function resetForm() {
   form.value = { id: null, userId: null, totalQuota: 0, status: "0", remark: null }

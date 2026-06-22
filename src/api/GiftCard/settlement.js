@@ -10,7 +10,7 @@ export function mySettlement(query) {
   return request({ url: '/GiftCard/settlement/my', method: 'get', params: query })
 }
 
-// 申请核销（提交支付截图）
+// 申请核销（提交支付截图；提交后不可修改/撤销）
 export function submitSettlement(data) {
   return request({ url: '/GiftCard/settlement/submit', method: 'post', data })
 }

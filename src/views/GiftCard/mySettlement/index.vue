@@ -15,7 +15,7 @@
             ｜ 剩余 <b :style="{ color: remain <= 0 ? '#f56c6c' : '#67c23a' }">₹{{ remain }}</b>
           </span>
           <el-button size="small" type="warning" @click="openSubmit"
-                     :disabled="Number(quota.usedAmount) <= 0">申请核销</el-button>
+                     :disabled="available <= 0">申请核销</el-button>
         </div>
       </template>
     </el-alert>
@@ -42,6 +42,18 @@
       <el-table-column label="核销金额" align="center" prop="amount" min-width="110">
         <template #default="scope">₹{{ scope.row.amount }}</template>
       </el-table-column>
+      <el-table-column label="实付金额" align="center" min-width="130">
+        <template #default="scope">
+          <span v-if="scope.row.settleForeignAmount != null">{{ scope.row.settleForeignAmount }} {{ scope.row.settleCurrency }}</span>
+          <span v-else style="color:#909399;">—</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="结算汇率" align="center" min-width="100">
+        <template #default="scope">
+          <span v-if="scope.row.settleRate != null">{{ scope.row.settleRate }}</span>
+          <span v-else style="color:#909399;">—</span>
+        </template>
+      </el-table-column>
       <el-table-column label="支付截图" align="center" min-width="90">
         <template #default="scope">
           <image-preview v-if="scope.row.paymentImage" :src="scope.row.paymentImage" :width="46" :height="46" />
@@ -62,19 +74,43 @@
     <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"
                 v-model:limit="queryParams.pageSize" @pagination="getList" />
 
-    <!-- 申请核销弹窗 -->
-    <el-dialog title="申请核销" v-model="submitOpen" width="460px" append-to-body>
+    <!-- 申请核销弹窗（提交后不可修改/撤销，提交前需二次确认） -->
+    <el-dialog title="申请核销" v-model="submitOpen" width="480px" append-to-body>
       <div style="margin-bottom:12px; color:#606266;">
-        当前已消耗额度：<b style="color:#f56c6c;">₹{{ quota ? quota.usedAmount : 0 }}</b>（可部分核销）
+        已消耗 <b style="color:#f56c6c;">₹{{ quota ? quota.usedAmount : 0 }}</b>
+        ｜ 待审核 <b>₹{{ pendingAmount }}</b>
+        ｜ 剩余可核销 <b style="color:#67c23a;">₹{{ available }}</b>（可分多笔提交）
       </div>
       <el-form label-width="90px">
         <el-form-item label="核销金额">
-          <el-input-number v-model="submitForm.amount" :min="0.01"
-                           :max="quota ? Number(quota.usedAmount) : 0" :step="100" :precision="2"
-                           controls-position="right" style="width: 100%" />
-          <el-button link type="primary" style="margin-left:8px;"
-                     @click="submitForm.amount = quota ? Number(quota.usedAmount) : 0">全额</el-button>
+          <div style="display:flex; align-items:center; width:100%;">
+            <el-input v-model="submitForm.amount" type="number" placeholder="0" @input="recalcForeign" style="flex:1;">
+              <template #prepend>₹</template>
+            </el-input>
+            <el-button link type="primary" style="margin-left:8px; white-space:nowrap;"
+                       @click="submitForm.amount = available; recalcForeign()">剩余全额</el-button>
+          </div>
+          <div style="font-size:12px;color:#909399;">单位：卢比（₹），额度始终按卢比计</div>
         </el-form-item>
+        <el-divider content-position="left" style="margin:6px 0 14px;">
+          <span style="font-size:13px;color:#909399;">实际结算（仅记录，不影响卢比额度）</span>
+        </el-divider>
+        <el-form-item label="结算币种">
+          <el-select v-model="submitForm.settleCurrency" style="width:100%" @change="onCurrencyChange">
+            <el-option v-for="c in currencyOptions" :key="c.code" :label="`${c.name}（${c.code}）`" :value="c.code" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="约定汇率">
+          <el-input v-model="submitForm.settleRate" type="number" placeholder="0"
+                    :disabled="submitForm.settleCurrency === 'INR'" @input="recalcForeign" style="width:100%" />
+          <div style="font-size:12px;color:#909399;">1 {{ submitForm.settleCurrency }} = 多少卢比（双方约定，可改）</div>
+        </el-form-item>
+        <el-form-item label="实付金额">
+          <el-input v-model="submitForm.settleForeignAmount" type="number" placeholder="0"
+                    @input="recalcRate" style="width:100%" />
+          <div style="font-size:12px;color:#909399;">默认=核销额÷汇率；手动改这里会实时反算汇率（单位：{{ submitForm.settleCurrency }}）</div>
+        </el-form-item>
+        <el-divider style="margin:6px 0 14px;" />
         <el-form-item label="支付截图">
           <image-upload v-model="submitForm.paymentImage" :limit="1" />
         </el-form-item>
@@ -93,7 +129,9 @@
 <script setup name="MySettlement">
 import { mySettlement, submitSettlement } from "@/api/GiftCard/settlement"
 import { myQuota } from "@/api/GiftCard/quota"
+import { listRate } from "@/api/GiftCard/rate"
 import { ref, reactive, toRefs, computed, getCurrentInstance } from "vue"
+import { ElMessageBox } from "element-plus"
 import useUserStore from "@/store/modules/user"
 
 const { proxy } = getCurrentInstance()
@@ -107,6 +145,14 @@ const list = ref([])
 const quota = ref(null)
 const remain = computed(() => quota.value
   ? Number(quota.value.totalQuota || 0) - Number(quota.value.usedAmount || 0) : 0)
+// 待审核金额合计（当前页）：允许分多笔提交，剩余可核销 = 已消耗 − 待审核
+const pendingAmount = computed(() =>
+  (list.value || []).filter(r => r.status === '0')
+    .reduce((s, r) => s + Number(r.amount || 0), 0))
+const available = computed(() => {
+  const used = quota.value ? Number(quota.value.usedAmount || 0) : 0
+  return Math.max(0, used - pendingAmount.value)
+})
 
 const data = reactive({ queryParams: { pageNum: 1, pageSize: 10 } })
 const { queryParams } = toRefs(data)
@@ -130,28 +176,101 @@ function getList() {
   }).catch(() => { loading.value = false })
 }
 
+// ===== 结算币种/汇率（提交人填写，仅记录，不参与额度计算）=====
+const rateList = ref([])
+const currencyOptions = computed(() => rateList.value)
+const rateMap = computed(() => {
+  const m = {}
+  rateList.value.forEach(r => { m[r.code] = Number(r.rateToInr) })
+  return m
+})
+function loadRates() {
+  listRate().then(res => { rateList.value = res.data || [] }).catch(() => {})
+}
+// 改 核销额/汇率 → 算实付金额 = 核销额 ÷ 汇率
+function recalcForeign() {
+  const amt = Number(submitForm.value.amount)
+  const rate = Number(submitForm.value.settleRate)
+  if (amt > 0 && rate > 0) {
+    submitForm.value.settleForeignAmount = Math.round((amt / rate) * 100) / 100
+  }
+}
+// 改 实付金额 → 反算汇率 = 核销额 ÷ 实付（保持三者一致）；卢比固定汇率1不反算
+function recalcRate() {
+  if (submitForm.value.settleCurrency === 'INR') return
+  const amt = Number(submitForm.value.amount)
+  const foreign = Number(submitForm.value.settleForeignAmount)
+  if (amt > 0 && foreign > 0) {
+    submitForm.value.settleRate = Math.round((amt / foreign) * 1000000) / 1000000
+  }
+}
+// 切换币种：卢比固定汇率1；其它带出当前手动汇率作为起填值，再重算实付
+function onCurrencyChange() {
+  const code = submitForm.value.settleCurrency
+  if (code === 'INR') {
+    submitForm.value.settleRate = 1
+  } else if (rateMap.value[code]) {
+    submitForm.value.settleRate = rateMap.value[code]
+  }
+  recalcForeign()
+}
+
 const submitOpen = ref(false)
-const submitForm = ref({ amount: 0, paymentImage: '', remark: '' })
+const submitForm = ref({ amount: 0, settleCurrency: 'USDT', settleRate: null, settleForeignAmount: null, paymentImage: '', remark: '' })
 function openSubmit() {
-  // 默认全额核销当前已消耗
-  submitForm.value = { amount: quota.value ? Number(quota.value.usedAmount) : 0, paymentImage: '', remark: '' }
+  submitForm.value = {
+    amount: available.value,
+    settleCurrency: 'USDT', settleRate: rateMap.value['USDT'] || null, settleForeignAmount: null,
+    paymentImage: '', remark: ''
+  }
+  recalcForeign()
   submitOpen.value = true
 }
 function doSubmit() {
-  if (!submitForm.value.amount || submitForm.value.amount <= 0) {
-    proxy.$modal.msgError("请输入核销金额")
-    return
+  const amount = Number(submitForm.value.amount)
+  const rate = Number(submitForm.value.settleRate)
+  const foreign = submitForm.value.settleForeignAmount === '' || submitForm.value.settleForeignAmount == null
+    ? null : Number(submitForm.value.settleForeignAmount)
+  if (!amount || amount <= 0) {
+    proxy.$modal.msgError("请输入核销金额"); return
   }
-  submitSettlement(submitForm.value).then(() => {
+  if (!submitForm.value.settleCurrency) {
+    proxy.$modal.msgError("请选择结算币种"); return
+  }
+  if (!rate || rate <= 0) {
+    proxy.$modal.msgError("请输入约定汇率"); return
+  }
+  const cur = submitForm.value.settleCurrency
+  // 二次信息确认：提交后不可修改/撤销
+  const html =
+    '<div style="line-height:1.9">' +
+    '核销金额：<b>₹' + amount + '</b><br/>' +
+    '结算币种：<b>' + cur + '</b><br/>' +
+    '约定汇率：<b>' + rate + '</b>（1 ' + cur + ' = ₹' + rate + '）<br/>' +
+    '实付金额：<b>' + (foreign != null ? foreign + ' ' + cur : '—') + '</b><br/>' +
+    '<span style="color:#f56c6c;font-weight:bold;">提交后不可修改、不可撤销，请务必核对；如信息有误，责任自负。</span>' +
+    '</div>'
+  ElMessageBox.confirm(html, '请确认核销信息', {
+    dangerouslyUseHTMLString: true,
+    confirmButtonText: '确认提交',
+    cancelButtonText: '返回修改',
+    type: 'warning'
+  }).then(() => {
+    return submitSettlement({
+      amount, settleCurrency: cur, settleRate: rate, settleForeignAmount: foreign,
+      paymentImage: submitForm.value.paymentImage, remark: submitForm.value.remark
+    })
+  }).then(() => {
     proxy.$modal.msgSuccess("核销申请已提交，等待审核")
     submitOpen.value = false
     loadQuota()
     getList()
-  })
+  }).catch(() => {})
 }
 
 // 管理员豁免额度，无需查询额度和核销记录
 if (!isAdmin.value) {
+  loadRates()
   loadQuota()
   getList()
 }
