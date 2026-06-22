@@ -11,7 +11,8 @@
         <div style="display:flex; align-items:center; justify-content:space-between; font-size:14px;">
           <span>
             我的提取额度：总 <b>₹{{ quota.totalQuota }}</b>
-            ｜ 已用 <b>₹{{ quota.usedAmount }}</b>
+            ｜ 已用(待核销) <b>₹{{ quota.usedAmount }}</b>
+            ｜ 已核销 <b style="color:#409eff;">₹{{ quota.settledAmount ?? 0 }}</b>
             ｜ 剩余 <b :style="{ color: remain <= 0 ? '#f56c6c' : '#67c23a' }">₹{{ remain }}</b>
           </span>
           <el-button size="small" type="warning" @click="openSubmit"
@@ -21,6 +22,26 @@
     </el-alert>
     <el-alert v-else-if="!isAdmin" :closable="false" type="warning" style="margin-bottom: 12px;"
               title="当前账号未开通提取额度" />
+
+    <!-- 搜索（仅普通用户）：状态 + 提交时间 -->
+    <el-form v-if="!isAdmin" :inline="true" label-width="70px">
+      <el-form-item label="状态">
+        <el-select v-model="queryParams.status" placeholder="全部" clearable style="width: 120px">
+          <el-option label="待审核" value="0" />
+          <el-option label="已核销" value="1" />
+          <el-option label="已驳回" value="2" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="提交时间">
+        <el-date-picker v-model="dateRange" value-format="YYYY-MM-DD" type="daterange"
+                        range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期"
+                        style="width: 240px" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+      </el-form-item>
+    </el-form>
 
     <!-- 我的核销记录（可展开看审核流程）；管理员无核销，不显示 -->
     <el-table v-if="!isAdmin" v-loading="loading" :data="list" border>
@@ -154,8 +175,9 @@ const available = computed(() => {
   return Math.max(0, used - pendingAmount.value)
 })
 
-const data = reactive({ queryParams: { pageNum: 1, pageSize: 10 } })
+const data = reactive({ queryParams: { pageNum: 1, pageSize: 10, status: null } })
 const { queryParams } = toRefs(data)
+const dateRange = ref([])
 
 function statusText(s) { return s === '1' ? '已核销' : (s === '2' ? '已驳回' : '待审核') }
 function statusTag(s) { return s === '1' ? 'success' : (s === '2' ? 'danger' : 'warning') }
@@ -169,11 +191,21 @@ function loadQuota() {
 }
 function getList() {
   loading.value = true
-  mySettlement(queryParams.value).then(res => {
+  mySettlement(proxy.addDateRange(queryParams.value, dateRange.value)).then(res => {
     list.value = res.rows
     total.value = res.total
     loading.value = false
   }).catch(() => { loading.value = false })
+}
+function handleQuery() {
+  queryParams.value.pageNum = 1
+  getList()
+}
+function resetQuery() {
+  dateRange.value = []
+  queryParams.value.status = null
+  queryParams.value.pageNum = 1
+  getList()
 }
 
 // ===== 结算币种/汇率（提交人填写，仅记录，不参与额度计算）=====

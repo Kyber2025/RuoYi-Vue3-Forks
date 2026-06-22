@@ -32,8 +32,11 @@
       <el-table-column label="总额度" align="center" prop="totalQuota" min-width="120">
         <template #default="scope">₹{{ scope.row.totalQuota }}</template>
       </el-table-column>
-      <el-table-column label="已用额度" align="center" prop="usedAmount" min-width="120">
+      <el-table-column label="已用额度(待核销)" align="center" prop="usedAmount" min-width="130">
         <template #default="scope">₹{{ scope.row.usedAmount }}</template>
+      </el-table-column>
+      <el-table-column label="已核销额度" align="center" prop="settledAmount" min-width="120">
+        <template #default="scope">₹{{ scope.row.settledAmount ?? 0 }}</template>
       </el-table-column>
       <el-table-column label="剩余额度" align="center" prop="remainAmount" min-width="120">
         <template #default="scope">
