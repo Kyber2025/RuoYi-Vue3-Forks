@@ -48,8 +48,13 @@
           <el-option label="驳回" value="2" />
         </el-select>
       </el-form-item>
+      <el-form-item label="提交时间">
+        <el-date-picker v-model="dateRange" value-format="YYYY-MM-DD" type="daterange"
+                        range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期"
+                        style="width: 240px" />
+      </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="Search" @click="getList">搜索</el-button>
+        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
@@ -144,15 +149,21 @@ const { queryParams } = toRefs(data)
 function statusText(s) { return s === '1' ? '已核销' : (s === '2' ? '驳回' : '待审核') }
 function statusTag(s) { return s === '1' ? 'success' : (s === '2' ? 'info' : 'warning') }
 
+const dateRange = ref([])
 function getList() {
   loading.value = true
-  listSettlement(queryParams.value).then(res => {
+  listSettlement(proxy.addDateRange(queryParams.value, dateRange.value)).then(res => {
     list.value = res.rows
     total.value = res.total
     loading.value = false
   }).catch(() => { loading.value = false })
 }
+function handleQuery() {
+  queryParams.value.pageNum = 1
+  getList()
+}
 function resetQuery() {
+  dateRange.value = []
   queryParams.value.userName = null
   queryParams.value.status = null
   queryParams.value.pageNum = 1
