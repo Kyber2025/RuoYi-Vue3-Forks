@@ -35,6 +35,15 @@ export function updateGiftCard(data) {
   })
 }
 
+// 管理员强制纠错：允许把已用卡改回创建/未使用（需填原因 remark）
+export function forceCorrectGiftCard(data) {
+  return request({
+    url: '/GiftCard/GiftCard/forceCorrect',
+    method: 'put',
+    data: data
+  })
+}
+
 // 删除礼品卡
 export function delGiftCard(id) {
   return request({

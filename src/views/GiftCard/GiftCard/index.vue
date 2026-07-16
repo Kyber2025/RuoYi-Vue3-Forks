@@ -289,6 +289,9 @@
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
                      v-hasPermi="['GiftCard:GiftCard:edit']">修改
           </el-button>
+          <el-button link type="warning" icon="RefreshLeft" @click="handleForceCorrect(scope.row)"
+                     v-hasPermi="['GiftCard:GiftCard:forceEdit']">强制纠错
+          </el-button>
 <!--          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)"
                      v-hasPermi="['GiftCard:GiftCard:remove']">删除
           </el-button>-->
@@ -376,6 +379,34 @@
         <div class="dialog-footer">
           <el-button type="primary" @click="submitForm">确 定</el-button>
           <el-button @click="cancel">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 管理员强制纠错对话框 -->
+    <el-dialog title="强制纠错" v-model="forceOpen" width="500px" append-to-body>
+      <el-form ref="forceRef" :model="forceForm" :rules="forceRules" label-width="90px">
+        <el-form-item label="卡号">
+          <el-input v-model="forceForm.code" disabled/>
+        </el-form-item>
+        <el-form-item label="状态" prop="status">
+          <el-select v-model="forceForm.status" placeholder="请选择状态" style="width:100%">
+            <el-option v-for="dict in ka_status" :key="dict.value" :label="dict.label" :value="dict.value"/>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="使用类型" prop="usageType">
+          <el-select v-model="forceForm.usageType" placeholder="请选择使用类型" style="width:100%">
+            <el-option v-for="dict in ka_usage_type" :key="dict.value" :label="dict.label" :value="dict.value"/>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="纠错原因" prop="remark">
+          <el-input v-model="forceForm.remark" type="textarea" :rows="3" placeholder="必填：请说明纠错原因"/>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitForceCorrect">确 定</el-button>
+          <el-button @click="forceOpen = false">取 消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -643,7 +674,8 @@ import {
   importGiftCardStatus,
   searchByNum,
   searchByAmount,
-  exportAndChangeStatus
+  exportAndChangeStatus,
+  forceCorrectGiftCard
 } from "@/api/GiftCard/GiftCard"
 import {parseTime} from "../../../utils/ruoyi.js";
 import { ref, reactive, toRefs, computed, getCurrentInstance } from "vue"
@@ -661,6 +693,14 @@ const {ka_status, ka_usage_type, gift_type} = proxy.useDict(
 
 const GiftCardList = ref([])
 const open = ref(false)
+// 管理员强制纠错
+const forceOpen = ref(false)
+const forceForm = ref({})
+const forceRules = {
+  status: [{ required: true, message: "请选择状态", trigger: "change" }],
+  usageType: [{ required: true, message: "请选择使用类型", trigger: "change" }],
+  remark: [{ required: true, message: "纠错原因必填", trigger: "blur" }],
+}
 const loading = ref(true)
 const showSearch = ref(true)
 const ids = ref([])
@@ -1072,6 +1112,35 @@ function submitForm() {
         })
       }
     }
+  })
+}
+
+/** 打开"强制纠错"对话框 */
+function handleForceCorrect(row) {
+  forceForm.value = {
+    id: row.id,
+    code: row.code,
+    status: row.status,
+    usageType: row.usageType,
+    remark: ""
+  }
+  forceOpen.value = true
+}
+
+/** 提交"强制纠错"（跳过流转校验，需填原因；后端按 id 更新） */
+function submitForceCorrect() {
+  proxy.$refs["forceRef"].validate(valid => {
+    if (!valid) return
+    forceCorrectGiftCard({
+      id: forceForm.value.id,
+      status: forceForm.value.status,
+      usageType: forceForm.value.usageType,
+      remark: forceForm.value.remark
+    }).then(() => {
+      proxy.$modal.msgSuccess("纠错成功")
+      forceOpen.value = false
+      getList()
+    })
   })
 }
 
