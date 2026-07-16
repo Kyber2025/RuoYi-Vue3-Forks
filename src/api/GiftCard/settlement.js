@@ -24,8 +24,3 @@ export function confirmSettlement(id) {
 export function rejectSettlement(id, data) {
   return request({ url: '/GiftCard/settlement/reject/' + id, method: 'put', data })
 }
-
-// 删除
-export function delSettlement(ids) {
-  return request({ url: '/GiftCard/settlement/' + ids, method: 'delete' })
-}

@@ -19,8 +19,3 @@ export function getQuotaByUser(userId) {
 export function saveQuota(data) {
   return request({ url: '/GiftCard/quota', method: 'post', data })
 }
-
-// 删除额度
-export function delQuota(ids) {
-  return request({ url: '/GiftCard/quota/' + ids, method: 'delete' })
-}

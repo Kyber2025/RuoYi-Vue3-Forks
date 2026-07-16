@@ -57,8 +57,6 @@
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="openEdit(scope.row)"
                      v-hasPermi="['GiftCard:quota:edit']">修改</el-button>
-          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
-                     v-hasPermi="['GiftCard:quota:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -98,7 +96,7 @@
 </template>
 
 <script setup name="GiftCardQuota">
-import { listQuota, saveQuota, delQuota } from "@/api/GiftCard/quota"
+import { listQuota, saveQuota } from "@/api/GiftCard/quota"
 import { listOwnerOptions } from "@/api/GiftCard/GiftCard"
 import { ref, reactive, toRefs, getCurrentInstance } from "vue"
 
@@ -170,15 +168,6 @@ function submitForm() {
     })
   })
 }
-function handleDelete(row) {
-  proxy.$modal.confirm(`确认删除账号「${row.userName}」的额度记录？`).then(() => {
-    return delQuota(row.id)
-  }).then(() => {
-    proxy.$modal.msgSuccess("删除成功")
-    getList()
-  }).catch(() => {})
-}
-
 loadOwners()
 getList()
 </script>

@@ -99,8 +99,6 @@
             <el-button link type="warning" icon="Close" @click="handleReject(scope.row)"
                        v-hasPermi="['GiftCard:settlement:audit']">驳回</el-button>
           </template>
-          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
-                     v-hasPermi="['GiftCard:settlement:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -131,7 +129,7 @@
 </template>
 
 <script setup name="GiftCardSettlement">
-import { listSettlement, confirmSettlement, rejectSettlement, delSettlement } from "@/api/GiftCard/settlement"
+import { listSettlement, confirmSettlement, rejectSettlement } from "@/api/GiftCard/settlement"
 import { listRate, updateRate, liveRate } from "@/api/GiftCard/rate"
 import { ref, reactive, toRefs, computed, getCurrentInstance } from "vue"
 
@@ -185,15 +183,6 @@ function handleReject(row) {
     getList()
   }).catch(() => {})
 }
-function handleDelete(row) {
-  proxy.$modal.confirm('确认删除该核销记录？').then(() => {
-    return delSettlement(row.id)
-  }).then(() => {
-    proxy.$modal.msgSuccess("删除成功")
-    getList()
-  }).catch(() => {})
-}
-
 // ===== 货币换算器 =====
 const SYMBOLS = { USDT: '$', INR: '₹', HKD: 'HK$', CNY: '¥' }
 const rateList = ref([])        // 手动维护汇率 [{id,code,name,rateToInr}]
